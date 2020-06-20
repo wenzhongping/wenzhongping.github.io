@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="nginx, Darren">
+    <meta name="keywords" content="linux运维常用命令, Darren">
     <meta name="description" content="我的博客">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>nginx | Darren</title>
+    <title>linux运维常用命令 | Darren</title>
     <link rel="icon" type="image/png" href="/favicon.png">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -308,12 +308,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/2.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/9.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">nginx</h1>
+                    <h1 class="description center-align post-title">linux运维常用命令</h1>
                 </div>
             </div>
         </div>
@@ -430,8 +430,8 @@
                     
                     <div class="article-tag">
                         
-                            <a href="/tags/Nginx/">
-                                <span class="chip bg-color">Nginx</span>
+                            <a href="/tags/linux/">
+                                <span class="chip bg-color">linux</span>
                             </a>
                         
                     </div>
@@ -462,133 +462,9 @@
         <hr class="clearfix">
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1><span id="nginx从入门到精通">Nginx从入门到精通</span></h1><h2><span id="第一章-nginx简介以及安装">第一章  Nginx简介以及安装</span></h2><h3><span id="11-nginx由来">1.1 Nginx由来</span></h3><p>Nginx是一个web应用及反向代理工具，由一名俄罗斯程序员(Igor)发明的。NGINX是一个免费的，开源的高性能HTTP服务器和反向代理，以及IMAP / POP3代理服务器。 NGINX以其高性能，稳定性，丰富的功能集，简单的配置和低资源消耗而闻名。</p>
-<h3><span id="12-nginx特点">1.2 Nginx特点</span></h3><p>主要有三大应用场景：</p>
-<ul>
-<li><p>静态资源服务 （web静态网页）</p>
-</li>
-<li><p>反向代理服务（缓存，负载均衡）</p>
-</li>
-<li><p>API服务（OpenResty）</p>
-<h3><span id="13-nginx优势">1.3 Nginx优势</span></h3></li>
-<li><p>更快，单次请求更快，高峰期也更快</p>
-</li>
-<li><p>高扩展性，极具扩展性，它由多个不同功能、不同层次、不同类型且耦合度极高的模块组成，这种低耦合的设计，造就了它庞大的第三方模块</p>
-</li>
-<li><p>高可靠性，每个worker进程相对独立，master进程在某个worker进程出错时能迅速拉起新的worker进程nginx的可靠性来源于其核心框架代码的优秀设计、模块设计的简单性。</p>
-</li>
-<li><p>低内存消耗，一般情况下10000个非活跃的keep-alive连接仅消耗2.5M的内存</p>
-</li>
-<li><p>单机支持10万以上的并发连接</p>
-</li>
-<li><p>热部署</p>
-</li>
-</ul>
-<h3><span id="14-nginx安装centos">1.4 Nginx安装(centos)</span></h3><p>（1）直接通过yum安装</p>
-<pre><code class="bash">yum install -y  nginx</code></pre>
-<p>（2）通过编译安装</p>
-<pre><code class="bash"># 更换阿里cento7的yum源（可选）
-yum list wget
-# 若没有安装wget
-yum -y install wget
-# 首先备份原版/etc/yum.repos.d/CentOS-Base.repo
-cd /etc/yum.repos.d
- mv CentOS-Base.repo CentOS-Base.repo.bak
- # 下载阿里yum源
- wget -O CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
- #运行yum makecache生成缓存
- yum clean all
-yum makecache
-
-
-
-
-# 安装nginx依赖
-yum -y install gcc gcc-c++ autoconf automake make 
-yum -y install zlib zlib-devel openssl openssl-devel pcre pcre-devel
-
-# 添加www用户
-groupadd -f www
-useradd -g www www
-# 创建一个目录并切换
-mkdir nginx
-cd nginx
-# 下载nginx
-wget http://nginx.org/download/nginx-1.18.0.tar.gz
-# 解压
-tar -zxvf nginx-1.18.0.tar.gz
-
-# 配置nginx
-cd nginx-1.18.0
-
-# 安装依赖
-yum -y install zlib zlib-devel openssl openssl-devel pcre pcre-devel
-
-# 编译安装
-./configure --user=www --group=www --prefix=/usr/local/nginx --with-http_stub_status_module --with-http_ssl_module --with-stream --with-http_gzip_static_module --with-http_sub_module --with-http_v2_module
-
-
-
-
-
-
-
-</code></pre>
-<img src="/2020/06/20/nginx/image-20200620224324492.png" class title="image-20200620224324492">
-
-<pre><code class="bash"># 出现以上可以开始编译安装
-make &amp;&amp; make install</code></pre>
-<p>安装成功，刚刚通过./configure –prefix=/usr/local/nginx指定安装在/usr/local/nginx</p>
-<pre><code class="bash">
-#查看启动情况
-ps -ef|grep nginx
-
-#查看是否启动成功
-curl 127.0.0.1
-#查看端口情况
-lsof -i :80
-
-COMMAND   PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
-nginx   25363 root    6u  IPv4  73747      0t0  TCP *:http (LISTEN)
-nginx   25365  www    6u  IPv4  73747      0t0  TCP *:http (LISTEN)
-
-</code></pre>
-<p>添加到系统环境变量</p>
-<pre><code class="bash">
-vim /lib/systemd/system/nginx.service
-# 加入如下内容
-[Unit]
-Description=nginx
-After=network.target
-
-[Service]
-Type=forking
-ExecStart=/usr/local/nginx/sbin/nginx
-ExecReload=/usr/local/nginx/sbin/nginx -s reload
-ExecStop=/usr/local/nginx/sbin/nginx -s quit
-PrivateTmp=true
-
-[Install]
-WantedBy=multi-user.target
-
-</code></pre>
-<pre><code class="bash">#启动nginx服务
-systemctl start nginx
-
-# 开机自启
-systemctl enable nginx
-
-#停止服务
-nginx -s stop
-
-#检查配置文件
-nginx -t
-
-#重新加载配置
-nginx -s reload 
-
-</code></pre>
-<h2><span id="第二章-常见nginx配置">第二章 常见Nginx配置</span></h2><h2><span id="第三章-nginx优化">第三章 Nginx优化</span></h2><script>
+                <p>[TOC]</p>
+<h1><span id="linux-常用命令">linux 常用命令</span></h1><pre class=" language-bash"><code class="language-bash">$ hexo new <span class="token string">"My New Post"</span></code></pre>
+<script>
         document.querySelectorAll('.github-emoji')
           .forEach(el => {
             if (!el.dataset.src) { return; }
@@ -631,7 +507,7 @@ nginx -s reload
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://wenzhongping.github.io/2020/06/20/nginx/">http://wenzhongping.github.io/2020/06/20/nginx/</a>
+                    <a href="http://wenzhongping.github.io/2020/06/20/linux%E8%BF%90%E7%BB%B4%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/">http://wenzhongping.github.io/2020/06/20/linux%E8%BF%90%E7%BB%B4%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -669,8 +545,8 @@ nginx -s reload
                     
                         <div class="article-tag">
                             
-                                <a href="/tags/Nginx/">
-                                    <span class="chip bg-color">Nginx</span>
+                                <a href="/tags/linux/">
+                                    <span class="chip bg-color">linux</span>
                                 </a>
                             
                         </div>
@@ -842,24 +718,22 @@ nginx -s reload
             <div class="article-badge left-badge text-color">
                 <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
             <div class="card">
-                <a href="/2020/06/20/linux%E8%BF%90%E7%BB%B4%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/">
+                <a href="/2020/06/20/IDC%E7%BD%91%E7%BB%9C%E8%BF%90%E7%BB%B4/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/9.jpg" class="responsive-img" alt="linux运维常用命令">
+                        <img src="/medias/featureimages/9.jpg" class="responsive-img" alt="IDC网络运维">
                         
-                        <span class="card-title">linux运维常用命令</span>
+                        <span class="card-title">IDC网络运维</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            [TOC]
-linux 常用命令$ hexo new "My New Post"
-
+                            
         document.querySelectorAll('.github-emoji')
           .forEach(el => {
-
+            if (!el.dataset.src) { return
                         
                     </div>
                     <div class="publish-info">
@@ -877,8 +751,8 @@ linux 常用命令$ hexo new "My New Post"
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/linux/">
-                        <span class="chip bg-color">linux</span>
+                    <a href="/tags/%E7%BD%91%E7%BB%9C/">
+                        <span class="chip bg-color">网络</span>
                     </a>
                     
                 </div>
@@ -892,24 +766,24 @@ linux 常用命令$ hexo new "My New Post"
                 下一篇&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/2020/06/19/hello-world/">
+                <a href="/2020/06/20/nginx/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/12.jpg" class="responsive-img" alt="Hello World">
+                        <img src="/medias/featureimages/2.jpg" class="responsive-img" alt="nginx">
                         
-                        <span class="card-title">Hello World</span>
+                        <span class="card-title">nginx</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hex
+                            Nginx从入门到精通第一章  Nginx简介以及安装1.1 Nginx由来Nginx是一个web应用及反向代理工具，由一名俄罗斯程序员(Igor)发明的。NGINX是一个免费的，开源的高性能HTTP服务器和反向代理，以及IMAP / PO
                         
                     </div>
                     <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2020-06-19
+                                <i class="far fa-clock fa-fw icon-date"></i>2020-06-20
                             </span>
                         <span class="publish-author">
                             
@@ -918,6 +792,14 @@ linux 常用命令$ hexo new "My New Post"
                             
                         </span>
                     </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Nginx/">
+                        <span class="chip bg-color">Nginx</span>
+                    </a>
+                    
                 </div>
                 
             </div>

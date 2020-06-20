@@ -539,7 +539,14 @@ yum -y install zlib zlib-devel openssl openssl-devel pcre pcre-devel
 <pre><code class="bash"># 出现以上可以开始编译安装
 make &amp;&amp; make install</code></pre>
 <p>安装成功，刚刚通过./configure –prefix=/usr/local/nginx指定安装在/usr/local/nginx</p>
-<pre><code class="bash">
+<pre><code class="bash">#启动 nginx服务
+/usr/local/nginx/sbin/nginx
+#停止服务
+/usr/local/nginx/sbin/nginx -s stop
+
+#重启服务
+/usr/local/nginx/sbin/nginx -s reload 
+
 #查看启动情况
 ps -ef|grep nginx
 
@@ -551,41 +558,6 @@ lsof -i :80
 COMMAND   PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
 nginx   25363 root    6u  IPv4  73747      0t0  TCP *:http (LISTEN)
 nginx   25365  www    6u  IPv4  73747      0t0  TCP *:http (LISTEN)
-
-</code></pre>
-<p>添加到系统环境变量</p>
-<pre><code class="bash">
-vim /lib/systemd/system/nginx.service
-# 加入如下内容
-[Unit]
-Description=nginx
-After=network.target
-
-[Service]
-Type=forking
-ExecStart=/usr/local/nginx/sbin/nginx
-ExecReload=/usr/local/nginx/sbin/nginx -s reload
-ExecStop=/usr/local/nginx/sbin/nginx -s quit
-PrivateTmp=true
-
-[Install]
-WantedBy=multi-user.target
-
-</code></pre>
-<pre><code class="bash">#启动nginx服务
-systemctl start nginx
-
-# 开机自启
-systemctl enable nginx
-
-#停止服务
-nginx -s stop
-
-#检查配置文件
-nginx -t
-
-#重新加载配置
-nginx -s reload 
 
 </code></pre>
 <h2><span id="第二章-常见nginx配置">第二章 常见Nginx配置</span></h2><h2><span id="第三章-nginx优化">第三章 Nginx优化</span></h2><script>
