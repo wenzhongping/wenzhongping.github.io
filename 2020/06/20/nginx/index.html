@@ -462,11 +462,31 @@
         <hr class="clearfix">
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1><span id="第一章-什么是nginx">第一章 什么是Nginx</span></h1><h2><span id="11-nginx简介">1.1 Nginx简介</span></h2><p><img src="/2020/06/20/nginx/image-20200620152420068.png" class title="image-20200620152420068"></p>
-<h2><span id="12-标题">1.2 标题</span></h2><p>这是一张图片</p>
-<img src="/2020/06/20/nginx/image-20200620162249228.png" class title="image-20200620162249228">
-
-<script>
+                <h1><span id="nginx从入门到精通">Nginx从入门到精通</span></h1><h2><span id="第一章-nginx简介以及安装">第一章  Nginx简介以及安装</span></h2><h3><span id="11-nginx由来">1.1 Nginx由来</span></h3><p>Nginx是一个web应用及反向代理工具，由一名俄罗斯程序员(Igor)发明的。NGINX是一个免费的，开源的高性能HTTP服务器和反向代理，以及IMAP / POP3代理服务器。 NGINX以其高性能，稳定性，丰富的功能集，简单的配置和低资源消耗而闻名。</p>
+<h3><span id="12-nginx特点">1.2 Nginx特点</span></h3><p>主要有三大应用场景：</p>
+<ul>
+<li><p>静态资源服务 （web静态网页）</p>
+</li>
+<li><p>反向代理服务（缓存，负载均衡）</p>
+</li>
+<li><p>API服务（OpenResty）</p>
+<h3><span id="13-nginx优势">1.3 Nginx优势</span></h3></li>
+<li><p>更快，单次请求更快，高峰期也更快</p>
+</li>
+<li><p>高扩展性，极具扩展性，它由多个不同功能、不同层次、不同类型且耦合度极高的模块组成，这种低耦合的设计，造就了它庞大的第三方模块</p>
+</li>
+<li><p>高可靠性，每个worker进程相对独立，master进程在某个worker进程出错时能迅速拉起新的worker进程nginx的可靠性来源于其核心框架代码的优秀设计、模块设计的简单性。</p>
+</li>
+<li><p>低内存消耗，一般情况下10000个非活跃的keep-alive连接仅消耗2.5M的内存</p>
+</li>
+<li><p>单机支持10万以上的并发连接</p>
+</li>
+<li><p>热部署</p>
+</li>
+</ul>
+<h3><span id="14-nginx安装">1.4 Nginx安装</span></h3><p>（1）直接通过yum安装</p>
+<pre class=" language-bash"><code class="language-bash">yum <span class="token function">install</span> -y  nginx</code></pre>
+<h2><span id="第二章-常见nginx应用">第二章 常见Nginx应用</span></h2><h2><span id="第三章-nginx优化">第三章 Nginx优化</span></h2><script>
         document.querySelectorAll('.github-emoji')
           .forEach(el => {
             if (!el.dataset.src) { return; }
