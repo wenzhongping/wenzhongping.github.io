@@ -29,7 +29,7 @@
 
     <script src="/libs/jquery/jquery.min.js"></script>
 
-<meta name="generator" content="Hexo 4.2.1"><link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css"></head>
+<meta name="generator" content="Hexo 4.2.1"></head>
 
 
 <body>
@@ -484,9 +484,83 @@
 <li><p>热部署</p>
 </li>
 </ul>
-<h3><span id="14-nginx安装">1.4 Nginx安装</span></h3><p>（1）直接通过yum安装</p>
-<pre class=" language-bash"><code class="language-bash">yum <span class="token function">install</span> -y  nginx</code></pre>
-<h2><span id="第二章-常见nginx应用">第二章 常见Nginx应用</span></h2><h2><span id="第三章-nginx优化">第三章 Nginx优化</span></h2><script>
+<h3><span id="14-nginx安装centos">1.4 Nginx安装(centos)</span></h3><p>（1）直接通过yum安装</p>
+<pre><code class="bash">yum install -y  nginx</code></pre>
+<p>（2）通过编译安装</p>
+<pre><code class="bash"># 更换阿里cento7的yum源（可选）
+yum list wget
+# 若没有安装wget
+yum -y install wget
+# 首先备份原版/etc/yum.repos.d/CentOS-Base.repo
+cd /etc/yum.repos.d
+ mv CentOS-Base.repo CentOS-Base.repo.bak
+ # 下载阿里yum源
+ wget -O CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+ #运行yum makecache生成缓存
+ yum clean all
+yum makecache
+
+
+
+
+# 安装nginx依赖
+yum -y install gcc gcc-c++ autoconf automake make 
+yum -y install zlib zlib-devel openssl openssl-devel pcre pcre-devel
+
+# 添加www用户
+groupadd -f www
+useradd -g www www
+# 创建一个目录并切换
+mkdir nginx
+cd nginx
+# 下载nginx
+wget http://nginx.org/download/nginx-1.18.0.tar.gz
+# 解压
+tar -zxvf nginx-1.18.0.tar.gz
+
+# 配置nginx
+cd nginx-1.18.0
+
+# 安装依赖
+yum -y install zlib zlib-devel openssl openssl-devel pcre pcre-devel
+
+# 编译安装
+./configure --user=www --group=www --prefix=/usr/local/nginx --with-http_stub_status_module --with-http_ssl_module --with-stream --with-http_gzip_static_module --with-http_sub_module --with-http_v2_module
+
+
+
+
+
+
+
+</code></pre>
+<img src="/2020/06/20/nginx/image-20200620224324492.png" class title="image-20200620224324492">
+
+<pre><code class="bash"># 出现以上可以开始编译安装
+make &amp;&amp; make install</code></pre>
+<p>安装成功，刚刚通过./configure –prefix=/usr/local/nginx指定安装在/usr/local/nginx</p>
+<pre><code class="bash">#启动 nginx服务
+/usr/local/nginx/sbin/nginx
+#停止服务
+/usr/local/nginx/sbin/nginx -s stop
+
+#重启服务
+/usr/local/nginx/sbin/nginx -s reload 
+
+#查看启动情况
+ps -ef|grep nginx
+
+#查看是否启动成功
+curl 127.0.0.1
+#查看端口情况
+lsof -i :80
+
+COMMAND   PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+nginx   25363 root    6u  IPv4  73747      0t0  TCP *:http (LISTEN)
+nginx   25365  www    6u  IPv4  73747      0t0  TCP *:http (LISTEN)
+
+</code></pre>
+<h2><span id="第二章-常见nginx配置">第二章 常见Nginx配置</span></h2><h2><span id="第三章-nginx优化">第三章 Nginx优化</span></h2><script>
         document.querySelectorAll('.github-emoji')
           .forEach(el => {
             if (!el.dataset.src) { return; }
