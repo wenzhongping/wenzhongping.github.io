@@ -619,8 +619,7 @@ access_log syslog:server=192.168.1.10 debug;
 mv access_log.log access_log.back.log
 # 切割日志
 nginx -s reopen</code></pre>
-<h3><span id="22-热部署">2.2 热部署</span></h3><p>热升级：</p>
-<pre><code class="bash"># 1.备份原执行文件nginx 为nginx.old
+<h3><span id="22-热部署">2.2 热部署</span></h3><pre><code class="bash"># 1.备份原执行文件nginx 为nginx.old
 mv /usr/local/nginx/sbin/nginx  /usr/local/nginx/sbin/nginx.old
 
 # 2.将新编译好的nginx执行文件拷过来
@@ -629,103 +628,10 @@ cp /usr/local/nginx-19/sbin/nginx  /usr/local/nginx/sbin/nginx
 
 # 3.向nginx主进程发送USR2 信号，通知nginx要对它进行升级
 
-ps -ef  | grep nginx</code></pre>
-<img src="/2020/06/21/nginx/image-20200621163132648.png" class title="image-20200621163132648">
 
-<pre><code class="bash">#  向老进程发送USR2信号，告诉老进程升级
- kill -USR2 6579
- # 向老进程发送退出老work信号 
- kill -WINCH 6579
-
-
- # 确定没问题再quit 老进程（6579进程）
- kill -QUIT 6579
-
-
- ps -ef  | grep nginx
-
- #查看版本
- nginx -v
-</code></pre>
-<img src="/2020/06/21/nginx/image-20200621163952054.png" class title="image-20200621163952054">
-
-
-
-<p>回滚操作</p>
-<pre><code class="bash"># 1.恢复旧的二进制文件
-mv /usr/local/nginx/sbin/nginx.old  /usr/local/nginx/sbin/nginx
-# 2.退出新版本nginx进程
-kill -HUP 19857
-kill -QUIT 19857
-
-# 查看版本
-nginx -v
-# 指定配置文件为旧版本所用配置文件
-nginx -c /usr/local/nginx/conf/nginx.conf
-# 重新加载
-nginx -s reload
-</code></pre>
-<h3><span id="23-正向代理">2.3 正向代理</span></h3><p>nginx.conf配置中隐藏版本号</p>
-<pre><code class="bash"> # 隐藏版本号
-     server_tokens off;</code></pre>
-<p>进入nginx配置文件夹</p>
-<img src="/2020/06/21/nginx/image-20200621174446530.png" class title="image-20200621174446530">
-
-<p>主要配置在nginx.conf,一般不去修改此文件，我们可以再新建一个文件夹用于存放后续http模块配置，把该文件夹引入到nginx.conf配置文件中的http体内</p>
-<pre><code class="bash">mkdir conf.d
-
-
-# 在nginx.conf中引入配置文件
-vim nginx.conf
-include  /usr/local/nginx/conf/conf.d/*.conf
-:wq
-</code></pre>
-<pre><code class="bash">#  新建一个html建测试页面
-touch /usr/local/nginx/www/index.html
-echo "hello word" &gt;&gt; /usr/local/nginx/www/index.html
-
-# 进入/usr/local/nginx/conf/conf.d新增配置文件
-
-server {
-    listen      80;
-    # 若有域名则写域名，可以根据域名来转发到不同页面
-    server_name  localhost;
-# 访问日志配置
-    access_log  /var/log/index.access.log  main;
-# 网页文件所在路径
-    root   /usr/local/nginx/www/;
-
-# 访问/目录时显示index.html页面
-    location / {
-
-          index  index.html index.htm;
-    }
-
-
-
-
-# 测试
-
-curl 127.0.0.1:8080
 
 </code></pre>
-<h4><span id="root-和-alias-的区别">root   和 alias 的区别:</span></h4><p>(1)</p>
-<pre><code class="bash">location /images/ {
-
-       root "/app/webroot"
-
-}
-
-访问： http://www.test.com/images/a.jpg  相当于文件系统路径 /app/webroot/images/a.jpg </code></pre>
-<p>(2)</p>
-<pre><code class="bash">location  /images/ {
-
-      alias  "/www/pictures/"; 
-
-}
-
-访问： http://www.test.com/images/a.jpg  相当于文件系统路径/www/pictures/a.jpg </code></pre>
-<h3><span id="24反向代理">2.4反向代理</span></h3><h3><span id="25-缓存">2.5 缓存</span></h3><h2><span id="第三章-nginx优化">第三章 Nginx优化</span></h2><script>
+<h3><span id="23-缓存">2.3 缓存</span></h3><h2><span id="第三章-nginx优化">第三章 Nginx优化</span></h2><script>
         document.querySelectorAll('.github-emoji')
           .forEach(el => {
             if (!el.dataset.src) { return; }
