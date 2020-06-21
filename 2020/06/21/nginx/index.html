@@ -619,7 +619,8 @@ access_log syslog:server=192.168.1.10 debug;
 mv access_log.log access_log.back.log
 # 切割日志
 nginx -s reopen</code></pre>
-<h3><span id="22-热部署">2.2 热部署</span></h3><pre><code class="bash"># 1.备份原执行文件nginx 为nginx.old
+<h3><span id="22-热部署">2.2 热部署</span></h3><p>热升级：</p>
+<pre><code class="bash"># 1.备份原执行文件nginx 为nginx.old
 mv /usr/local/nginx/sbin/nginx  /usr/local/nginx/sbin/nginx.old
 
 # 2.将新编译好的nginx执行文件拷过来
@@ -628,8 +629,40 @@ cp /usr/local/nginx-19/sbin/nginx  /usr/local/nginx/sbin/nginx
 
 # 3.向nginx主进程发送USR2 信号，通知nginx要对它进行升级
 
+ps -ef  | grep nginx</code></pre>
+<img src="/2020/06/21/nginx/image-20200621163132648.png" class title="image-20200621163132648">
+
+<pre><code class="bash">#  6579是旧的主进程号
+ kill -USR2 6579
+ kill -WINCH 6579
 
 
+ # 确定没问题再quit 6579进程
+ kill -QUIT 6579
+
+
+ ps -ef  | grep nginx
+
+ #查看版本
+ nginx -v
+</code></pre>
+<img src="/2020/06/21/nginx/image-20200621163952054.png" class title="image-20200621163952054">
+
+
+
+<p>回滚操作</p>
+<pre><code class="bash"># 1.恢复旧的二进制文件
+mv /usr/local/nginx/sbin/nginx.old  /usr/local/nginx/sbin/nginx
+# 2.退出新版本nginx进程
+kill -HUP 19857
+kill -QUIT 19857
+
+# 查看版本
+nginx -v
+# 指定配置文件为旧版本所用配置文件
+nginx -c /usr/local/nginx/conf/nginx.conf
+# 重新加载
+nginx -s reload
 </code></pre>
 <h3><span id="23-缓存">2.3 缓存</span></h3><h2><span id="第三章-nginx优化">第三章 Nginx优化</span></h2><script>
         document.querySelectorAll('.github-emoji')
