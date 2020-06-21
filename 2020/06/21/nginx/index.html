@@ -791,6 +791,21 @@ ssl_prefer_server_ciphers on;
 <li>“{n,}”重复n或更多次</li>
 <li>“{n,m}”重复n到m次</li>
 </ul>
+<p>比较常用的匹配</p>
+<pre><code class="bash">#uri包含/static即可匹配中
+location ^~ /static/ {
+root /webroot/static/;
+}
+# uri以.(gif|jpg|jpeg|png|css|js|ico)结尾
+location ~* .(gif|jpg|jpeg|png|css|js|ico)$ {
+root /webroot/res/;
+}
+
+# 匹配全部
+
+location  ~.*^ {
+root /webroot/res/;
+}</code></pre>
 <h3><span id="24反向代理">2.4反向代理</span></h3><h3><span id="25-缓存">2.5 缓存</span></h3><h2><span id="第三章-nginx优化">第三章 Nginx优化</span></h2><script>
         document.querySelectorAll('.github-emoji')
           .forEach(el => {
