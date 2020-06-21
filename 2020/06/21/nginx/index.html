@@ -665,7 +665,7 @@ nginx -c /usr/local/nginx/conf/nginx.conf
 # 重新加载
 nginx -s reload
 </code></pre>
-<h3><span id="23-正向代理">2.3 正向代理</span></h3><p>nginx.conf配置中隐藏版本号</p>
+<h3><span id="23-web应用">2.3 web应用</span></h3><p>nginx.conf配置中隐藏版本号</p>
 <pre><code class="bash"> # 隐藏版本号
      server_tokens off;</code></pre>
 <p>进入nginx配置文件夹</p>
@@ -806,7 +806,7 @@ root /webroot/res/;
 location  ~.*^ {
 root /webroot/res/;
 }</code></pre>
-<h3><span id="24反向代理">2.4反向代理</span></h3><h3><span id="25-缓存">2.5 缓存</span></h3><h2><span id="第三章-nginx优化">第三章 Nginx优化</span></h2><script>
+<h3><span id="24反向代理负载均衡">2.4反向代理负载均衡</span></h3><h3><span id="25-缓存">2.5 缓存</span></h3><h2><span id="第三章-nginx优化">第三章 Nginx优化</span></h2><script>
         document.querySelectorAll('.github-emoji')
           .forEach(el => {
             if (!el.dataset.src) { return; }
