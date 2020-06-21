@@ -446,7 +446,7 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
-                    2020-06-20
+                    2020-06-21
                 </div>
                 
 
@@ -465,12 +465,11 @@
                 <h1><span id="nginx从入门到精通">Nginx从入门到精通</span></h1><h2><span id="第一章-nginx简介以及安装">第一章  Nginx简介以及安装</span></h2><h3><span id="11-nginx由来">1.1 Nginx由来</span></h3><p>Nginx是一个web应用及反向代理工具，由一名俄罗斯程序员(Igor)发明的。NGINX是一个免费的，开源的高性能HTTP服务器和反向代理，以及IMAP / POP3代理服务器。 NGINX以其高性能，稳定性，丰富的功能集，简单的配置和低资源消耗而闻名。</p>
 <h3><span id="12-nginx特点">1.2 Nginx特点</span></h3><p>主要有三大应用场景：</p>
 <ul>
-<li><p>静态资源服务 （web静态网页）</p>
-</li>
-<li><p>反向代理服务（缓存，负载均衡）</p>
-</li>
-<li><p>API服务（OpenResty）</p>
-<h3><span id="13-nginx优势">1.3 Nginx优势</span></h3></li>
+<li>静态资源服务 （web静态网页）</li>
+<li>反向代理服务（缓存，负载均衡）</li>
+<li>API服务（OpenResty）</li>
+</ul>
+<h3><span id="13-nginx优势">1.3 Nginx优势</span></h3><ul>
 <li><p>更快，单次请求更快，高峰期也更快</p>
 </li>
 <li><p>高扩展性，极具扩展性，它由多个不同功能、不同层次、不同类型且耦合度极高的模块组成，这种低耦合的设计，造就了它庞大的第三方模块</p>
@@ -534,7 +533,7 @@ yum -y install zlib zlib-devel openssl openssl-devel pcre pcre-devel
 
 
 </code></pre>
-<img src="/2020/06/20/nginx/image-20200620224324492.png" class title="image-20200620224324492">
+<img src="/2020/06/21/nginx/image-20200620224324492.png" class title="image-20200620224324492">
 
 <pre><code class="bash"># 出现以上可以开始编译安装
 make &amp;&amp; make install</code></pre>
@@ -571,6 +570,17 @@ PrivateTmp=true
 [Install]
 WantedBy=multi-user.target
 
+
+vim /etc/profile 
+# 加入以下内容
+
+export NGINX_HOME=/usr/local/nginx
+export PATH=$PATH:$NGINX_HOME/sbin
+
+# 执行
+source /etc/profile
+
+
 </code></pre>
 <pre><code class="bash">#启动nginx服务
 systemctl start nginx
@@ -587,8 +597,26 @@ nginx -t
 #重新加载配置
 nginx -s reload 
 
+# 查看版本
+nginx -v
+
 </code></pre>
-<h2><span id="第二章-常见nginx配置">第二章 常见Nginx配置</span></h2><h2><span id="第三章-nginx优化">第三章 Nginx优化</span></h2><script>
+<h2><span id="第二章-常见nginx配置">第二章 常见Nginx配置</span></h2><h3><span id="21-nginx日志">2.1 nginx日志</span></h3><p>（1）access log配置</p>
+<pre><code class="bash">
+access_log /var/log/access_log.gz combined gzip flush=5m;
+# 指定外部log日志服务器
+access_log syslog:server=192.168.1.10 debug;
+# /var/log/access_log.gz 存放日志的路径，默认是logs/access.log
+# gzip 压缩日志
+# flush=5m 5分钟写入硬盘一次
+# 使用默认combined格式记录日志
+</code></pre>
+<p>(2) 日志切割</p>
+<pre><code class="bash"># 备份之前日志
+mv access_log.log access_log.back.log
+# 切割日志
+nginx -s reopen</code></pre>
+<h3><span id="22-热部署">2.2 热部署</span></h3><h3><span id="23-缓存">2.3 缓存</span></h3><h2><span id="第三章-nginx优化">第三章 Nginx优化</span></h2><script>
         document.querySelectorAll('.github-emoji')
           .forEach(el => {
             if (!el.dataset.src) { return; }
@@ -631,7 +659,7 @@ nginx -s reload
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://wenzhongping.github.io/2020/06/20/nginx/">http://wenzhongping.github.io/2020/06/20/nginx/</a>
+                    <a href="http://wenzhongping.github.io/2020/06/21/nginx/">http://wenzhongping.github.io/2020/06/21/nginx/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -838,34 +866,30 @@ nginx -s reload
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+                <i class="far fa-dot-circle"></i>&nbsp;本篇
+            </div>
             <div class="card">
-                <a href="/2020/06/20/linux%E8%BF%90%E7%BB%B4%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/">
+                <a href="/2020/06/21/nginx/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/9.jpg" class="responsive-img" alt="linux运维常用命令">
+                        <img src="/medias/featureimages/2.jpg" class="responsive-img" alt="nginx">
                         
-                        <span class="card-title">linux运维常用命令</span>
+                        <span class="card-title">nginx</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            [TOC]
-linux 常用命令$ hexo new "My New Post"
-
-        document.querySelectorAll('.github-emoji')
-          .forEach(el => {
-
+                            Nginx从入门到精通第一章  Nginx简介以及安装1.1 Nginx由来Nginx是一个web应用及反向代理工具，由一名俄罗斯程序员(Igor)发明的。NGINX是一个免费的，开源的高性能HTTP服务器和反向代理，以及IMAP / PO
                         
                     </div>
                     <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2020-06-20
-                        </span>
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2020-06-21
+                            </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-user fa-fw"></i>
@@ -874,11 +898,12 @@ linux 常用命令$ hexo new "My New Post"
                         </span>
                     </div>
                 </div>
+
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/linux/">
-                        <span class="chip bg-color">linux</span>
+                    <a href="/tags/Nginx/">
+                        <span class="chip bg-color">Nginx</span>
                     </a>
                     
                 </div>
@@ -892,24 +917,27 @@ linux 常用命令$ hexo new "My New Post"
                 下一篇&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/2020/06/19/hello-world/">
+                <a href="/2020/06/20/%E9%9B%86%E7%BE%A4-%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/12.jpg" class="responsive-img" alt="Hello World">
+                        <img src="/medias/featureimages/1.jpg" class="responsive-img" alt="集群-负载均衡">
                         
-                        <span class="card-title">Hello World</span>
+                        <span class="card-title">集群-负载均衡</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hex
+                            
+        document.querySelectorAll('.github-emoji')
+          .forEach(el => {
+            if (!el.dataset.src) { return
                         
                     </div>
                     <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2020-06-19
+                                <i class="far fa-clock fa-fw icon-date"></i>2020-06-20
                             </span>
                         <span class="publish-author">
                             
@@ -918,6 +946,14 @@ linux 常用命令$ hexo new "My New Post"
                             
                         </span>
                     </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/%E9%9B%86%E7%BE%A4/">
+                        <span class="chip bg-color">集群</span>
+                    </a>
+                    
                 </div>
                 
             </div>
