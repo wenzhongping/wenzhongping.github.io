@@ -748,9 +748,9 @@ server {
     # 新增监听443端口配置
 
 listen 443 ssl;   #SSL协议访问端口号为443。此处如未添加ssl，可能会造成Nginx无法启动。
-  #/etc/nginx/key/4094309_www.nuokwan.com.pem为证书所在目录。
+  #/etc/nginx/key/4094309_www.test.pem为证书所在目录。
   ssl_certificate /etc/nginx/key/4094309_www.test.com.pem; 
-#/etc/nginx/key/4094309_www.nuokwan.com.key为key所在目录
+#/etc/nginx/key/4094309_www.test.com.key为key所在目录
 ssl_certificate_key /etc/nginx/key/4094309_www.test.com.key;  
 ssl_session_timeout 5m;
 ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4;  #使用此加密套件。
