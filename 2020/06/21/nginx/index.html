@@ -775,7 +775,22 @@ ssl_prefer_server_ciphers on;
 
 
 </code></pre>
-<h4><span id="rewire">rewire</span></h4><p>正则匹配</p>
+<h4><span id="rewire">rewire</span></h4><h5><span id="正则匹配">正则匹配</span></h5><h6><span id="元字符">元字符</span></h6><ul>
+<li>. 匹配除换行符以外的任意字符</li>
+<li>\w 匹配字母或数字或下划线或汉字</li>
+<li>\s 匹配任意的空白符</li>
+<li>\d 匹配数字</li>
+<li>^ 匹配字符串开始</li>
+<li>$匹配字符串结束</li>
+</ul>
+<h6><span id="重复">重复</span></h6><ul>
+<li>“*”重复零次或更多次</li>
+<li>“+”重复一次或更多次</li>
+<li>“？”重复零次或一次</li>
+<li>“{n}”重复n次</li>
+<li>“{n,}”重复n或更多次</li>
+<li>“{n,m}”重复n到m次</li>
+</ul>
 <h3><span id="24反向代理">2.4反向代理</span></h3><h3><span id="25-缓存">2.5 缓存</span></h3><h2><span id="第三章-nginx优化">第三章 Nginx优化</span></h2><script>
         document.querySelectorAll('.github-emoji')
           .forEach(el => {
