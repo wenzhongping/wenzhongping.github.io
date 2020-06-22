@@ -868,7 +868,65 @@ proxy_set_header X-Real-IP $remote_addr;
 <h3><span id="24反向代理负载均衡">2.4反向代理负载均衡</span></h3><p>如何理解反向代理？<br>Nginx是反向代理服务器，我们可以从下面的图来理解为什么是反向代理。以Nginx为中心，数据的流向是从Server到Nginx再到Client，注意我说的是数据（响应数据），而不是请求。我们都知道水流一定是从上游流到下游，所以给Server一个别称上游服务器，当然这个别称并不是我定义的。</p>
 <img src="/2020/06/22/nginx/image-20200622135224719.png" class title="image-20200622135224719">
 
-<h3><span id="25-缓存">2.5 缓存</span></h3><p>分块传输技术</p>
+<h3><span id="25-缓存">2.5 缓存</span></h3><pre><code class="bash"># nginx缓存空间配置，该配置定义在nginx配置文件的server上方即可
+proxy_cache_path /etc/nginx/cachefiles levels=1:2 keys_zone=cache:10m max_size=100m inactive=60m use_temp_path=off;
+
+</code></pre>
+<ul>
+<li><p>proxy cache_path 缓存内容存放的目录文件</p>
+</li>
+<li><p>levels=1:2 Nginx为将要缓存的资源生成的key为f4cd0fbc769e94925ec5540b6a4136d0，那么key的最后一位0，以及倒数第2-3位6d作为两级的子目录，也就是该资源最终会被缓存到/path/to/cache/0/6d目录中</p>
+</li>
+<li><p>keys_zone 在共享内存中设置一块存储区域来存放缓存的key和metadata（类似使用次数），这样nginx可以快速判断一个request是否命中或者未命中缓存，1m可以存储8000个key，10m可以存储80000个key</p>
+</li>
+<li><p>max_size最大cache空间，如果不指定，会使用掉所有disk space，当达到配额后，会删除最少使用的cache文件</p>
+</li>
+<li><p>inactive未被访问文件在缓存中保留时间，本配置中如果60分钟未被访问则不论状态是否为expired，缓存控制程序会删掉文件</p>
+</li>
+<li><p>use_temp_path  #如果为off，则nginx会将缓存文件直接写入指定的cache文件中，而不是使用temp_path存储，官方建议为off，避免文件在不同文件系统中不必要的拷贝</p>
+</li>
+</ul>
+<pre><code class="bash"># 在 location中应用缓存
+location / {
+# 设置上面定义的zoom名字
+proxy_cache cache
+# 设置缓存的Key值
+proxy_cache_key $scheme$proxy_host$request_uri; 
+
+# cache记录保存时间为1天
+ proxy_cache_valid any 1d;
+# 设置绕过缓存的请求url，即url中包含该配置的值，则该请求不从缓存中获取数据，非必须配置
+proxy_cache_bypass $arg_noCache;
+
+#设置当这两个参数值为true时，不缓存
+proxy_cache_bypass $cookie_nocache $arg_nocache;
+
+# 此处是托底配置，旧的总比出错强，当nginx请求后台服务器报错的时候，如果返回配置的错误响应码，nginx则直接取缓存文件中的旧数据返回给用户
+proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+
+# 缓存并发锁，当nginx缓存没有命中的时候只有一个请求回源后端服务器请求数据，其他请求会等待
+proxy_cache_lock on;
+
+#等待锁超时时间设置
+proxy_cache_lock_timeout 1s;
+
+# proxy_cache_revalidate命令被启用，NGINX检测得知当前的缓存内容依然有效（If-Modified-Since或者If-None-Match）
+proxy_cache_revalidate on;
+
+#允许在后台发送子请求来更新过期的缓存文件
+proxy_cache_background_update on;
+#指定该虚拟服务器下什么类型的HTTP方法可以被缓存
+proxy_cache_methods GET HEAD;
+#设置某内容被N次请求后，Nginx缓存该内容。
+proxy_cache_min_uses 1;
+
+
+# 插入头部信息查看缓存状态
+ add_header X-Cache-Status $upstream_cache_status;
+
+
+}</code></pre>
+<p>分块传输技术</p>
 <p>Nginx的slice模块可以将一个请求分解成多个子请求，每个子请求返回响应内容的一个片段，让大文件的缓存更有效率。</p>
 <pre><code class="bash">location / {
 
