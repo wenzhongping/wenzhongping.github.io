@@ -775,7 +775,7 @@ ssl_prefer_server_ciphers on;
 
 
 </code></pre>
-<h4><span id="rewire">rewire</span></h4><h5><span id="正则匹配">正则匹配</span></h5><h6><span id="元字符">元字符</span></h6><ul>
+<h5><span id="正则匹配">正则匹配</span></h5><h6><span id="元字符">元字符</span></h6><ul>
 <li>. 匹配除换行符以外的任意字符</li>
 <li>\w 匹配字母或数字或下划线或汉字</li>
 <li>\s 匹配任意的空白符</li>
@@ -790,6 +790,14 @@ ssl_prefer_server_ciphers on;
 <li>“{n}”重复n次</li>
 <li>“{n,}”重复n或更多次</li>
 <li>“{n,m}”重复n到m次</li>
+</ul>
+<p><strong>location的用法</strong></p>
+<ul>
+<li>以 = 开头，表示精确匹配；如只匹配根目录结尾的请求，后面不能带任何字符串。</li>
+<li>以^~ 开头，表示uri以某个常规字符串开头，不是正则匹配</li>
+<li>以~ 开头，表示区分大小写的正则匹配;</li>
+<li>以~* 开头，表示不区分大小写的正则匹配</li>
+<li>以/ 开头，通用匹配, 如果没有其它匹配,任何请求都会匹配到</li>
 </ul>
 <p>比较常用的location匹配</p>
 <pre><code class="bash">#uri包含/static即可匹配中
@@ -868,7 +876,78 @@ proxy_set_header X-Real-IP $remote_addr;
 <h3><span id="24反向代理负载均衡">2.4反向代理负载均衡</span></h3><p>如何理解反向代理？<br>Nginx是反向代理服务器，我们可以从下面的图来理解为什么是反向代理。以Nginx为中心，数据的流向是从Server到Nginx再到Client，注意我说的是数据（响应数据），而不是请求。我们都知道水流一定是从上游流到下游，所以给Server一个别称上游服务器，当然这个别称并不是我定义的。</p>
 <img src="/2020/06/22/nginx/image-20200622135224719.png" class title="image-20200622135224719">
 
-<h3><span id="25-缓存">2.5 缓存</span></h3><pre><code class="bash"># nginx缓存空间配置，该配置定义在nginx配置文件的server上方即可
+
+
+<h4><span id="241-七层反向代理">2.4.1 七层反向代理</span></h4><p>负载均衡</p>
+<pre><code class="bash">http {
+#新增上游服务器组
+upstream local {
+server 127.0.0.1:8080 weight 10 max_fails 3 fail_timeout 60 max_conns 3000 slow_start 30 ;
+server 127.0.0.1:8081 weight 20 max_fails 3 fail_timeout 60 max_conns 3000 slow_start 30 ;
+}
+server {
+listen 80 ;
+location / {
+#local为上面定义的上游服务器组名称
+proxy_pass http://local;
+}
+}
+
+}</code></pre>
+<ul>
+<li>Server      反向服务地址和端口</li>
+<li>weight      权重，默认为1.weight越大权重越大</li>
+<li>max_fails    失败次数，默认为1.超过最大次数主机被踢出</li>
+<li>fail_timeout 踢出后重新探测时间 </li>
+<li>backup 备用服务，主机宕机请求backup机器响应</li>
+<li>max_conns 最大连接次数 默认为0 限制同时连接到单个服务器的最大连接数</li>
+<li>slow_start 节点恢复时间  服务器权重从0恢复到标准的时间，默认为0，相当于缓慢启动</li>
+</ul>
+<p>Proxy_next_upstream</p>
+<p>当上游返回失败的时候,我们是有些处理方法的，这个处理方法就是通过proxy_next_upstream这么一个指令来控制的。当然了该指令能够生效的前提是我们没有向客户端发送一个字节，即没有向客户端发送任何的内容，只要向客户端发送了一个字节了，说明上游服务已经生效了，那么我们就不能再选择一个新的上游服务了。所以它是在接收到请求并且在转发一个字节之前，nginx判定为错误，那么这个功能才能够生效。</p>
+<pre><code class="bash">Syntax: proxy_next_upstream error | timeout | invalid_header | http_500 | http_502 | http_503 |http_504 | http_403 | http_404 | http_429 | non_idempotent | off ...;
+Default: proxy_next_upstream error timeout;
+Context: http, server, location
+
+error:nginx与上游建立连接，读取响应发送请求等等这些过程当中出现错误，那么error都可以满足这样一个场景，这个错误指的是网络错误，比如TCP层等。
+
+timeout:超时，有connect timeout，read timeout，write timeout。那么配置了timeout可以命中这些场景，当命中这些场景可以重选上游服务。
+
+#监听到下错误时proxy_next_upstream生效（二选一）
+ server{
+ proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504  non_idemponent;
+ # 监听到下游服务器宕机后生效（二选一）
+ # proxy_next_upstream  off ;
+
+
+
+
+
+</code></pre>
+<p>proxy_intercept_errors 拦截上游失败响应</p>
+<p>proxy_intercept_errors 当上游服务器响应头回来后，可以根据响应状态码的值进行拦截错误处理，与error_page 指令相互结合。用在访问上游服务器出现错误的情况下。</p>
+<pre><code class="bash">server {
+
+location / {
+prxxy_intercept_errors on;
+error_page 500 /test.html;
+}
+}</code></pre>
+<h4><span id="242-四层反向代理">2.4.2 四层反向代理</span></h4><pre><code class="bash">stream {
+upstream test  {
+server 127.0.0.1:8082 ;
+server 127.0.0.1:8083;
+}
+
+server {
+listen 13389 ;
+location / {
+#test为上面定义的上游服务器组名称
+proxy_pass http://test;
+}
+}
+}</code></pre>
+<h3><span id="25-缓存">2.5 缓存</span></h3><pre><code class="bash"># nginx缓存空间配置，该配置定义在nginx配置文件的http模块server上方即可
 proxy_cache_path /etc/nginx/cachefiles levels=1:2 keys_zone=cache:10m max_size=100m inactive=60m use_temp_path=off;
 
 </code></pre>
@@ -948,14 +1027,146 @@ proxy_ignore_headers X-Accel-Expires Expires Cache-Control;
 
 
 
+<h3><span id="25-rewrite详解">2.5 rewrite详解</span></h3><h4><span id="rewrite在if中的用法">rewrite在if中的用法</span></h4><p>格式：if (条件判断) { 具体的rewrite规则 }</p>
+<pre><code class="bash">if条件判断语句由Nginx内置变量、逻辑判断符号和目标字符串三部分组成。
+其中，内置变量是Nginx固定的非自定义的变量，如，$request_method, $request_uri等。
+逻辑判断符号，有=, !=, ~, ~*, !~, !~*
+!表示相反的意思，~为匹配符号，它右侧为正则表达式，区分大小写，而~*为不区分大小写匹配。
+目标字符串可以是正则表达式，通常不用加引号，但表达式中有特殊符号时，比如空格、花括号、分号等，需要用单引号引起来。
+</code></pre>
+<p><strong>示例1：当http请求方法为post时，返回403状态码</strong></p>
+<pre><code class="bash">if ($request_method = POST)
+{
+    return 403; 
+}</code></pre>
+<p><strong>示例2：通过浏览器标识匹配关键字，禁止IE浏览器访问</strong></p>
+<pre><code class="bash">if ($http_user_agent ~* MSIE) 
+{
+    return 403;
+}</code></pre>
+<p>限制多个浏览器：</p>
+<pre><code class="bash">if ($http_user_agent ~* "MSIE|firefox|Chrome")
+{
+    return 403;
+}</code></pre>
+<p><strong>示例3：当请求的文件不存在时，进行重定向或return状态码等处理操作</strong></p>
+<pre><code class="bash">if(!-f $request_filename)
+{
+    rewrite 语句;
+}</code></pre>
+<p><strong>示例4：判断uri中某个参数的内容</strong></p>
+<pre><code class="bash"># \d表示数字，{6,8}表示数字出现的次数是6到8次，当uri中gid参数的值包含6-8个数字那么执行rewrite语句
+if($request_uri ~* 'gid=\d{6,8}/') 
+{
+    rewrite 语句;
+}</code></pre>
+<h4><span id="rewrite中break和last的用法">rewrite中break和last的用法</span></h4><p>两个指令用法相同，但含义不同，需要放到rewrite规则的末尾，用来控制重写后的链接是否继续被nginx配置执行(主要是rewrite、return指令)。</p>
+<pre><code class="bash">server{
+    listen 80; 
+    server_name test.com;
+    root /data/wwwroot/test.com;
 
+    rewrite /1.html /2.html;
+    rewrite /2.html /3.html;
+}</code></pre>
+<p>请求1.html文件时，会被重定向到2.html，然后被重定向到3.html，最后返回的文件为3.html</p>
+<pre><code class="bash">server{
+    listen 80; 
+    server_name test.com;
+    root /data/test.com;
 
+    rewrite /1.html /2.html break;
+    rewrite /2.html /3.html;
+}</code></pre>
+<p>请求1.html文件时，会被重定向到2.html，然后直接返回2.html，break在此处的作用就是当匹配第一个rewrite指令成功时，不执行后面的rewrite指令</p>
+<p><strong>示例2：当break后面还有location{}的情况</strong></p>
+<pre><code class="bash">server{
+    listen 80; 
+    server_name test.com;
+    root /data/test.com;
 
+    rewrite /1.html /2.html break;
+    rewrite /2.html /3.html;
+    location /2.html {
+        return 403;
+    }
+}</code></pre>
+<p>请求1.html文件时，会返回403状态码，当1.html被重定向到2.html时，break不会匹配后面的rewrite规则，但条件2.html匹配location{}定义的文件2.html，所以会执行return 403</p>
+<p>以上两个示例中，将break换成last效果一样</p>
+<h5><span id="2break和last在location内部时">2.break和last在location{}内部时</span></h5><pre><code class="bash">server{
+    listen 80; 
+    server_name test.com;
+    root /data/test.com;
 
+    location / {
+        rewrite /1.html /2.html;
+        rewrite /2.html /3.html;
+    }
+    location /2.html
+    {
+        rewrite /2.html /a.html;
+    }
+    location /3.html
+    {
+        rewrite /3.html /b.html;
+    }
+}</code></pre>
+<p>请求1.html，会经过两次重定向到3.html，3.html又刚好匹配location /3.html{}，所以返回b.html，当请求2.html时，会直接返回a.html，因为location /2.html {} 更精准，优先匹配</p>
+<p><strong>示例1：在rewrite后面添加break</strong></p>
+<pre><code class="bash">server{
+    listen 80; 
+    server_name test.com;
+    root /data/test.com;
 
+    location / {
+        rewrite /1.html /2.html break;
+        rewrite /2.html /3.html;
+    }
+    location /2.html
+    {
+        rewrite /2.html /a.html;
+    }
+    location /3.html
+    {
+        rewrite /3.html /b.html;
+    }
+}</code></pre>
+<p>请求1.html，会返回2.html，不会返回a.html，当break再location {} 内部时，遇到break后，当前location{} 以及后面的location{} 的指令都不再执行</p>
+<p><strong>示例2：在rewrite后面添加last</strong></p>
+<pre><code class="bash">server{
+    listen 80; 
+    server_name test.com;
+    root /data/test.com;
 
-
-
+    location / {
+        rewrite /1.html /2.html last;
+        rewrite /2.html /3.html;
+    }
+    location /2.html
+    {
+        rewrite /2.html /a.html;
+    }
+    location /3.html
+    {
+        rewrite /3.html /b.html;
+    }
+}</code></pre>
+<p>请求1.html时，会返回a.html，在location {} 内部遇到last，当前location {}中剩下的指令不会再执行，但被重定向的url会重新匹配一遍location {}</p>
+<p><strong>break和last用法总结</strong></p>
+<p>1.当rewrite规则在location{}外，break和last作用一样，遇到break或last后，其后续的rewrite/return语句不再执行。但后续有location{}的话，还会近一步执行location{}里面的语句,前提是请求能匹配该location<br>2.当rewrite规则在location{}里，遇到break后，本location{}与其他location{}的所有rewrite/return规则都不再执行<br>3.当rewrite规则在location{}里，遇到last后，本location{}里后续rewrite/return规则不执行，但重写后的url再次从头匹配所有location</p>
+<h4><span id="动静态请求分离跳转">动静态请求分离跳转</span></h4><pre><code class="bash">server{
+    listen 80;
+    server_name www.test.com;
+    location ~* .*\.(jpg|jpeg|gif|css|png|js)$
+    {
+        rewrite /(.*) http://img.test.com/$1 permanent;
+    }
+}</code></pre>
+<h4><span id="http跳转https">http跳转https</span></h4><pre><code class="bash">server{
+    listen 80;
+    server_name www.test.com;
+    rewrite /(.*) https://www.test.com/$1 permanent;
+}</code></pre>
 <h2><span id="第三章-nginx优化">第三章 Nginx优化</span></h2><script>
         document.querySelectorAll('.github-emoji')
           .forEach(el => {
