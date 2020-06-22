@@ -928,13 +928,34 @@ proxy_ignore_headers X-Accel-Expires Expires Cache-Control;
 
 
 }</code></pre>
-<p>分块传输技术</p>
+<h3><span id="26-分块缓存技术">2.6 分块缓存技术</span></h3><p>ngx_http_slice_filter_module模块默认没有编译到Nginx程序中，需要编译时添加–with-http_slice_module选项</p>
 <p>Nginx的slice模块可以将一个请求分解成多个子请求，每个子请求返回响应内容的一个片段，让大文件的缓存更有效率。</p>
 <pre><code class="bash">location / {
-
-slice     1m;
-proxy_set_header Range $slice_range;
+    slice             1m;
+    proxy_cache       cache;
+    proxy_cache_key   $uri$is_args$args$slice_range;
+    proxy_set_header  Range $slice_range;
+    proxy_cache_valid 200 206 1h;
+    proxy_pass        http://127.0.0.1:80;
 }</code></pre>
+<p>slice指令设置分片的大小为1m。 这里使用了proxy_set_header指令，在取源时的HTTP请求中添加了Range头部，向源服务器请求文件的一部分，而不是全部内容。在proxy_cache_key中添加slice_range变量这样可以分片缓存</p>
+<h4><span id="slice_range变量">slice_range变量</span></h4><p>slice_range这个变量作用非常特殊，这个变量的值是当前需要向源服务器请求的分片，如果分片的大小为1m，那么最开始变量的值为<code>bytes=0-1048575</code>，通过配置文件中的<code>proxy_set_header Range $slice_range;</code>可以知道取源时请求的Range头部为<code>Range:bytes=0-1048575</code>，源服务器如果支持Range请求，便会返回响应的前1m字节，得到这个响应后slice_range变量的值变为<code>bytes=1048576-2097171</code> ，再次取源时便会取后1m字节，依次直到取得全部响应内容。</p>
+<img src="/2020/06/22/nginx/image-20200622151506812.png" class title="image-20200622151506812">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <h2><span id="第三章-nginx优化">第三章 Nginx优化</span></h2><script>
         document.querySelectorAll('.github-emoji')
           .forEach(el => {
