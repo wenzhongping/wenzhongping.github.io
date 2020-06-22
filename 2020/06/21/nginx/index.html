@@ -871,7 +871,7 @@ proxy_set_header X-Real-IP $remote_addr;
 <h3><span id="25-缓存">2.5 缓存</span></h3><p>分块传输技术</p>
 <p>Nginx的slice模块可以将一个请求分解成多个子请求，每个子请求返回响应内容的一个片段，让大文件的缓存更有效率。</p>
 <pre><code class="bash">location / {
-#限制传1M数据
+
 slice     1m;
 proxy_set_header Range $slice_range;
 }</code></pre>
