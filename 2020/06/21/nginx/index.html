@@ -791,7 +791,7 @@ ssl_prefer_server_ciphers on;
 <li>“{n,}”重复n或更多次</li>
 <li>“{n,m}”重复n到m次</li>
 </ul>
-<p>比较常用的匹配</p>
+<p>比较常用的location匹配</p>
 <pre><code class="bash">#uri包含/static即可匹配中
 location ^~ /static/ {
 root /webroot/static/;
@@ -806,7 +806,76 @@ root /webroot/res/;
 location  ~.*^ {
 root /webroot/res/;
 }</code></pre>
-<h3><span id="24反向代理负载均衡">2.4反向代理负载均衡</span></h3><h3><span id="25-缓存">2.5 缓存</span></h3><h2><span id="第三章-nginx优化">第三章 Nginx优化</span></h2><script>
+<p>防盗链技术</p>
+<p>简单有效的防盗链手段：referer模块</p>
+<p>场景：</p>
+<p>某网站通过url引用了你的页面，当用户在浏览器上点击 url时，http请求的头部中会通过 referer头部，将该网站当前页面的url带上，告诉服务器本次请求 是 由这个页面发起的</p>
+<pre><code class="bash"># referer模块指令
+# invalid_referer 允许访问时变量为空 ，不允许访问时变量值为1
+
+# 例子：常见的图片视频防盗链
+location ~* .(gif|jpg|png|swf|flv)$ {
+# 通过浏览器直接打开会有referer信息，也就是valid_referers值为1
+# none 代表没有referer
+#  blocked 代表有referer但是被防火墙或者是代理给去除了
+# www.wosoquan.com wosoquan.com  nginx会通过正则匹配，匹配到以上字符串值为0，否则为1
+
+valid_referers none blocked www.test.com test.com ;
+
+if ($invalid_referer) {
+# 若用户直接盗链接打开，则跳转至http://www.test.com/retrun.html
+rewrite ^/ http://www.test.com/retrun.html;
+
+#return 403;
+
+}
+
+}</code></pre>
+<p><code>proxy_set_header</code>和<code>add_header</code>的区别</p>
+<p>区别：<code>proxy_set_header</code>是<code>Nginx</code>设置请求头信息给上游服务器，<code>add_header</code>是<code>Nginx</code>设置响应头信息给浏览器。</p>
+<ul>
+<li><p>proxy_set_header</p>
+<p>假如<code>Nginx</code>请求上游服务器时，添加额外的请求头，就需要使用proxy_set_header</p>
+<p>例如：<code>proxy_set_header X-Request-URI $scheme://$host/$uri;</code></p>
+</li>
+<li><p>add_header</p>
+<p><code>Nginx</code>响应数据时，要告诉浏览器一些头信息，就要使用<code>add_header</code>。例如跨域访问</p>
+</li>
+</ul>
+<p>新增http头部信息</p>
+<pre><code class="bash">
+server {
+#添加一个自定义头部信息
+add_header  server:test;
+
+# 插入X-Forward-For到 下游服务器
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+#插入X-Real-IP远端真实ip
+proxy_set_header X-Real-IP $remote_addr;
+
+}
+</code></pre>
+<p>X-Forward-For 与X-Real-IP区别</p>
+<ul>
+<li>HTTP 头部X-Forward-For用户传递IP</li>
+<li>HTTP 头X-Real-IP用户传递用户 IP</li>
+</ul>
+<img src="/2020/06/21/nginx/image-20200622141513297.png" class title="image-20200622141513297">
+
+
+
+<h3><span id="24反向代理负载均衡">2.4反向代理负载均衡</span></h3><p>如何理解反向代理？<br>Nginx是反向代理服务器，我们可以从下面的图来理解为什么是反向代理。以Nginx为中心，数据的流向是从Server到Nginx再到Client，注意我说的是数据（响应数据），而不是请求。我们都知道水流一定是从上游流到下游，所以给Server一个别称上游服务器，当然这个别称并不是我定义的。</p>
+<img src="/2020/06/21/nginx/image-20200622135224719.png" class title="image-20200622135224719">
+
+<h3><span id="25-缓存">2.5 缓存</span></h3><p>分块传输技术</p>
+<p>Nginx的slice模块可以将一个请求分解成多个子请求，每个子请求返回响应内容的一个片段，让大文件的缓存更有效率。</p>
+<pre><code class="bash">location / {
+#限制传1M数据
+slice     1m;
+proxy_set_header Range $slice_range;
+}</code></pre>
+<h2><span id="第三章-nginx优化">第三章 Nginx优化</span></h2><script>
         document.querySelectorAll('.github-emoji')
           .forEach(el => {
             if (!el.dataset.src) { return; }
