@@ -462,7 +462,105 @@
         <hr class="clearfix">
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1><span id="网络运维">网络运维</span></h1><h2><span id="第一章-路由交换">第一章  路由交换</span></h2><h3><span id="11-华为交换机配置">1.1 华为交换机配置</span></h3><h3><span id="12-华三交换机配置">1.2 华三交换机配置</span></h3><h2><span id="第二章-波分传输">第二章 波分传输</span></h2><script>
+                <h1><span id="网络运维">网络运维</span></h1><h2><span id="第一章-路由交换">第一章  路由交换</span></h2><h3><span id="11-华为交换机配置">1.1 华为交换机配置</span></h3><h4><span id="交换机堆叠">交换机堆叠</span></h4><pre><code class="bash"># 先把所有端口down
+&lt;HUAWEI&gt; system-view
+[~HUAWEI] stack
+[~HUAWEI-stack] stack member 1 renumber 1 inherit-config      //配置堆叠成员ID--默认为1，一般住堆叠设备不改，只需改变优先级
+Warning: The stack configuration of member ID 1 will be inherited to member ID 2 after the device resets. Continue? [Y/N]: y
+[*HUAWEI-stack] stack member 1 priority 150      //配置堆叠优先级（默认为100，修改更高确认主从）
+[*HUAWEI-stack] stack member 1 domain 10       //配置堆叠域编号
+[*HUAWEI-stack] quit
+[*HUAWEI] commit                                                //提交配置
+&lt;HUAWEI&gt;save                                                    //保存配置
+&lt;HUAWEI&gt;reboot                                               //重启设备
+[~HUAWEI] interface stack-port 1/1      //创建堆叠逻辑端口
+[*HUAWEI-Stack-Port1/1] port member-group interface 100ge 1/0/7 to 1/0/8
+[*HUAWEI-Stack-Port1/1] quit
+
+
+
+第二台设备
+[~HUAWEI-stack] stack member 1 renumber 2 inherit-config      //配置堆叠成员ID--默认为1，备份堆叠设备需修改
+[*HUAWEI] commit
+[~HUAWEI] quit
+&lt;HUAWEI&gt; save      //保存配置
+Warning: The current configuration will be written to the device. Continue? [Y/N]: y
+&lt;HUAWEI&gt; reboot      //重启设备
+Warning: The system will reboot. Continue? [Y/N]: y
+
+[*HUAWEI-stack] stack member 2 domain 10       //配置堆叠域编号，因SwitchB尚未重启，当前堆叠成员ID还是1，所以此时仍使用member 1来进行堆叠配置。如果重启则使用2
+[*HUAWEI] interface stack-port 2/2
+[*HUAWEI-Stack-Port1/2] port member-group interface 100ge 2/0/7 to 2/0/8 ，--》修改堆叠成员id后，接口1/0/7默认变为2/0/7 日志服务器
+[*HUAWEI-Stack-Port1/2] quit
+[*HUAWEI] commit
+[~HUAWEI] quit
+&lt;HUAWEI&gt; save      //保存配置
+Warning: The current configuration will be written to the device. Continue? [Y/N]: y
+&lt;HUAWEI&gt; reboot      //重启设备
+Warning: The system will reboot. Continue? [Y/N]: y
+
+# 第三步：等都重启好了，打开堆叠的端口，插上堆叠线
+</code></pre>
+<p>查看光功率</p>
+<pre><code class="bash">dis transceiver interface XGigabitEthernet 0/1/1 verbose </code></pre>
+<p>查看所有配置</p>
+<pre><code class="bash">sys
+dis cu
+</code></pre>
+<p>清空交换机配置**</p>
+<pre><code class="bash"># 1.启动交换机，按Ctrl+B进入交换机的BootRom菜单
+...
+7. skip current configuration 
+...
+# 选择 “7” 回车后选择“Y”
+# 选择 “0” 重新启动交换机此时交换机会以出厂设置进入没密码
+# 进入到交换机直接输入save 保存空配置，替换以前的配置文件
+# 输入reboot重启交换机，再选择“7”此时选择“N”，重启后再配置即可</code></pre>
+<h3><span id="12-华三交换机配置">1.2 华三交换机配置</span></h3><h4><span id="交换机堆叠">交换机堆叠</span></h4><pre><code class="bash"># 先把所有端口down掉
+第一台：
+irf member 1 pri 26
+save
+int range ten 1/0/29 to ten 1/0/32
+shut
+qu
+irf-port 1/1
+port group interface Ten-GigabitEthernet1/0/29
+port group interface Ten-GigabitEthernet1/0/30
+ port group interface Ten-GigabitEthernet1/0/31
+ port group interface Ten-GigabitEthernet1/0/32
+qu
+int range ten 1/0/29 to ten 1/0/32
+undo shut
+qu
+save 
+irf-port-config active 
+
+第二台：
+irf member 1 re 2
+save
+reboot
+irf member 2 pri 10
+save
+int range ten 2/0/29 to ten 2/0/32
+shut
+qu
+irf-port 2/2
+port group interface Ten-GigabitEthernet2/0/29
+port group interface Ten-GigabitEthernet2/0/30
+ port group interface Ten-GigabitEthernet2/0/31
+ port group interface Ten-GigabitEthernet2/0/32
+qu
+int range ten 2/0/29 to ten 2/0/32
+undo shut
+qu
+save 
+irf-port-config active 
+
+第三步：插上堆叠线，备机自动重启，重启后重新save f
+
+第四步：在主机dis int 查看端口状态，是否能看到2机端口
+</code></pre>
+<h2><span id="第二章-波分传输">第二章 波分传输</span></h2><script>
         document.querySelectorAll('.github-emoji')
           .forEach(el => {
             if (!el.dataset.src) { return; }
@@ -729,9 +827,10 @@
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            网络运维第一章  路由交换1.1 华为交换机配置1.2 华三交换机配置第二章 波分传输
-        document.querySelectorAll('.github-emoji')
-          .forEach(el => 
+                            网络运维第一章  路由交换1.1 华为交换机配置交换机堆叠# 先把所有端口down
+&lt;HUAWEI&gt; system-view
+[~HUAWEI] stack
+[~HUAWEI-stack] stack member 1 renu
                         
                     </div>
                     <div class="publish-info">
