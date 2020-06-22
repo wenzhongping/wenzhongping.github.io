@@ -446,7 +446,7 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
-                    2020-06-21
+                    2020-06-22
                 </div>
                 
 
@@ -533,7 +533,7 @@ yum -y install zlib zlib-devel openssl openssl-devel pcre pcre-devel
 
 
 </code></pre>
-<img src="/2020/06/21/nginx/image-20200620224324492.png" class title="image-20200620224324492">
+<img src="/2020/06/22/nginx/image-20200620224324492.png" class title="image-20200620224324492">
 
 <pre><code class="bash"># 出现以上可以开始编译安装
 make &amp;&amp; make install</code></pre>
@@ -630,7 +630,7 @@ cp /usr/local/nginx-19/sbin/nginx  /usr/local/nginx/sbin/nginx
 # 3.向nginx主进程发送USR2 信号，通知nginx要对它进行升级
 
 ps -ef  | grep nginx</code></pre>
-<img src="/2020/06/21/nginx/image-20200621163132648.png" class title="image-20200621163132648">
+<img src="/2020/06/22/nginx/image-20200621163132648.png" class title="image-20200621163132648">
 
 <pre><code class="bash">#  向老进程发送USR2信号，告诉老进程升级
  kill -USR2 6579
@@ -647,7 +647,7 @@ ps -ef  | grep nginx</code></pre>
  #查看版本
  nginx -v
 </code></pre>
-<img src="/2020/06/21/nginx/image-20200621163952054.png" class title="image-20200621163952054">
+<img src="/2020/06/22/nginx/image-20200621163952054.png" class title="image-20200621163952054">
 
 
 
@@ -669,7 +669,7 @@ nginx -s reload
 <pre><code class="bash"> # 隐藏版本号
      server_tokens off;</code></pre>
 <p>进入nginx配置文件夹</p>
-<img src="/2020/06/21/nginx/image-20200621174446530.png" class title="image-20200621174446530">
+<img src="/2020/06/22/nginx/image-20200621174446530.png" class title="image-20200621174446530">
 
 <p>主要配置在nginx.conf,一般不去修改此文件，我们可以再新建一个文件夹用于存放后续http模块配置，把该文件夹引入到nginx.conf配置文件中的http体内</p>
 <pre><code class="bash">mkdir conf.d
@@ -861,12 +861,12 @@ proxy_set_header X-Real-IP $remote_addr;
 <li>HTTP 头部X-Forward-For用户传递IP</li>
 <li>HTTP 头X-Real-IP用户传递用户 IP</li>
 </ul>
-<img src="/2020/06/21/nginx/image-20200622141513297.png" class title="image-20200622141513297">
+<img src="/2020/06/22/nginx/image-20200622141513297.png" class title="image-20200622141513297">
 
 
 
 <h3><span id="24反向代理负载均衡">2.4反向代理负载均衡</span></h3><p>如何理解反向代理？<br>Nginx是反向代理服务器，我们可以从下面的图来理解为什么是反向代理。以Nginx为中心，数据的流向是从Server到Nginx再到Client，注意我说的是数据（响应数据），而不是请求。我们都知道水流一定是从上游流到下游，所以给Server一个别称上游服务器，当然这个别称并不是我定义的。</p>
-<img src="/2020/06/21/nginx/image-20200622135224719.png" class title="image-20200622135224719">
+<img src="/2020/06/22/nginx/image-20200622135224719.png" class title="image-20200622135224719">
 
 <h3><span id="25-缓存">2.5 缓存</span></h3><p>分块传输技术</p>
 <p>Nginx的slice模块可以将一个请求分解成多个子请求，每个子请求返回响应内容的一个片段，让大文件的缓存更有效率。</p>
@@ -918,7 +918,7 @@ proxy_set_header Range $slice_range;
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://wenzhongping.github.io/2020/06/21/nginx/">http://wenzhongping.github.io/2020/06/21/nginx/</a>
+                    <a href="http://wenzhongping.github.io/2020/06/22/nginx/">http://wenzhongping.github.io/2020/06/22/nginx/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -1130,7 +1130,7 @@ proxy_set_header Range $slice_range;
                 <i class="far fa-dot-circle"></i>&nbsp;本篇
             </div>
             <div class="card">
-                <a href="/2020/06/21/nginx/">
+                <a href="/2020/06/22/nginx/">
                     <div class="card-image">
                         
                         
@@ -1147,7 +1147,7 @@ proxy_set_header Range $slice_range;
                     </div>
                     <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2020-06-21
+                                <i class="far fa-clock fa-fw icon-date"></i>2020-06-22
                             </span>
                         <span class="publish-author">
                             
