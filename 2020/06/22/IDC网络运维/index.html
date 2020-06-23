@@ -541,6 +541,64 @@ interface 10GE1/0/2
 # 选择 “0” 重新启动交换机此时交换机会以出厂设置进入没密码
 # 进入到交换机直接输入save 保存空配置，替换以前的配置文件
 # 输入reboot重启交换机，再选择“7”此时选择“N”，重启后再配置即可</code></pre>
+<p>解除最大路由限制，设置同一目的地址最大路由条目32条</p>
+<pre><code class="bash">max-ecmp-num 32 设置最大路由条目32条
+重启</code></pre>
+<p>初始化配置</p>
+<pre><code class="bash"># 设置主机名
+sysname HW-S6520
+# 设置北京时间
+clock timezone BeiJ add 08:00:00
+clock protocol ntp
+
+
+# 设置远程登录acl
+acl number 2110
+ description telnet
+ rule 5 permit source 119.139.229.216 0
+ rule 25 permit source 14.162.59.0 0.0.0.127
+
+ telnet server enable
+ telnet server acl 2110
+lldp global enable
+fan prefer-direction slot 1 port-to-power 
+ fan prefer-direction slot 2 port-to-power 
+ # 设置远程登录ip
+ interface LoopBack0
+
+ line vty 0 4   
+ authentication-mode scheme
+ user-role network-operator
+ protocol inbound telnet
+ idle-timeout 30 0
+
+ ntp-service enable
+ ntp-service source LoopBack0
+ ntp-service unicast-server 202.120.2.101 priority
+ ntp-service unicast-server 133.100.9.2
+
+
+ # snmp 配置 
+
+ snmp-agent
+snmp-agent community read test acl 2110
+ snmp-agent sys-info version all 
+
+
+ # 配置远程用户
+
+ local-user test class manage
+ password hash 密码
+ service-type ssh telnet terminal
+ authorization-attribute user-role level-15
+ authorization-attribute user-role network-admin
+ authorization-attribute user-role network-operator
+
+
+
+
+
+</code></pre>
 <h3><span id="12-华三交换机配置">1.2 华三交换机配置</span></h3><h4><span id="交换机堆叠">交换机堆叠</span></h4><pre><code class="bash"># 先把所有端口down掉
 第一台：
 irf member 1 pri 26
@@ -617,6 +675,16 @@ ip add 10.20.252.62 28
 qu</code></pre>
 <p>配置交换机名字</p>
 <pre><code class="bash">sysname CMCC_P05_S6520</code></pre>
+<p>trunk口配置以及限速</p>
+<pre><code class="bash">interface Ten-GigabitEthernet2/0/3
+ port link-mode bridge
+ description to test
+ port link-type trunk
+ undo port trunk permit vlan 1
+ port trunk permit vlan 100 to 102
+ qos apply policy 3G inbound
+ qos apply policy 3G outbound
+</code></pre>
 <h2><span id="第二章-波分传输">第二章 波分传输</span></h2><script>
         document.querySelectorAll('.github-emoji')
           .forEach(el => {
