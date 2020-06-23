@@ -523,6 +523,15 @@ commit</code></pre>
 <p>保存配置</p>
 <pre><code class="bash">commit
 save</code></pre>
+<p>聚合口</p>
+<pre><code class="bash">interface Eth-Trunk1
+ undo portswitch
+ description to CMCC_5560
+ ip address 172.22.2.1 255.255.255.252
+
+interface 10GE1/0/2
+ description B03-S5560-T1/0/27
+ eth-trunk 1    </code></pre>
 <p>清空交换机配置**</p>
 <pre><code class="bash"># 1.启动交换机，按Ctrl+B进入交换机的BootRom菜单
 ...
@@ -576,6 +585,38 @@ irf-port-config active
 
 第四步：在主机dis int 查看端口状态，是否能看到2机端口
 </code></pre>
+<p>Acl 配置</p>
+<pre><code class="bash"># 需要写反掩码
+acl number 2110
+ description telnet
+ rule 5 permit source 119.136.249.216 0 
+ rule 10 permit source 130.241.64.30 0 
+ rule 25 permit source 14.162.59.0 0.0.0.127 
+</code></pre>
+<p>配置远程登录 以及新增用户名密码</p>
+<pre><code class="bash">telnet server enable
+telnet server acl 2110
+ssh server enable
+ssh server acl 2110
+rsa local-key-pair create
+public-key local create dsa
+user-interface vty 0 4
+authentication-mode scheme
+protocol inbound ssh
+idle-timeout 30 0
+local-user test
+password cipher 
+service-type ssh level 3
+ssh user wzp authentication-type password 
+
+
+# 配置管理ip
+int loop 0
+dec GL
+ip add 10.20.252.62 28
+qu</code></pre>
+<p>配置交换机名字</p>
+<pre><code class="bash">sysname CMCC_P05_S6520</code></pre>
 <h2><span id="第二章-波分传输">第二章 波分传输</span></h2><script>
         document.querySelectorAll('.github-emoji')
           .forEach(el => {
