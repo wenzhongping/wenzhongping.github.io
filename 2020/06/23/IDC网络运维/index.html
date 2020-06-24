@@ -602,8 +602,40 @@ snmp-agent community read test acl 2110
 <p>加优先级静态路由</p>
 <pre><code class="bash">ip route-static 10.1.1.1 255.255.255.255 Vlan-interface2000 192.168.1.20 bfd echo-packet description test   per 100
 </code></pre>
-<p>限速</p>
-<pre><code class="bash"></code></pre>
+<p>Qos限速</p>
+<pre><code class="bash">traffic classifier 10M
+
+ if-match any
+
+
+
+traffic behavior 10M                       
+
+ car cir 10240 
+
+
+
+traffic policy 10M  （或qos policy 100M  华三设备）
+
+ classifier 10M behavior 10M
+
+
+
+
+
+
+
+interface GigabitEthernet0/0/9
+
+ description U-10M-to-HongShouWangLuo-20111216
+
+ port link-type access
+
+ port default vlan 210
+
+ traffic-policy 10M inbound    （或qos apply policy 100M inbound 华三设备）
+
+ traffic-policy 10M outbound</code></pre>
 <p>策略路由配置</p>
 <pre><code class="bash"># 匹配源地址
 Acl 2220
