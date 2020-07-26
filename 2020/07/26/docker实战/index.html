@@ -587,7 +587,13 @@ docker -p ip::containerPort # 映射指定地址的任意可用端口到容器�
 docer -p hostPort:containerPort # 映射本机的指定端口到容器的指定端口
 # 例如：docker -p 3306:3306 # 映射本机的3306端口到容器的3306端口
 # 映射数据卷
-docker -v /home/data:/opt/data # 这里/home/data 指的是宿主机的目录地址，后者则是容器的目录地址</code></pre>
+docker -v /home/data:/opt/data # 这里/home/data 指的是宿主机的目录地址，后者则是容器的目录地址
+
+# docker 拷贝
+docker cp zabbix-web-nginx-mysql:/usr/share/zabbix/assets/fonts ./
+
+docker cp 容器名:容器路径 物理机路径
+</code></pre>
 <h2><span id="docker-第四章-搭建zabbix">docker 第四章 搭建zabbix</span></h2><h3><span id="41-脚本搭建-zabbix-agent暂时只编写zabbix-agent的脚本其他可基于此修改">4.1 脚本搭建 zabbix-agent（暂时只编写zabbix-agent的脚本，其他可基于此修改）</span></h3><pre><code class="bash">#1.下载脚本
 
 git clone https://github.com/webf5/zabbix-agent.git
@@ -603,7 +609,142 @@ vim  zabbix-agent.yml
 ./docker_run.sh </code></pre>
 <img src="/2020/07/26/docker%E5%AE%9E%E6%88%98/image-20200726160257239.png" class title="image-20200726160257239">
 
-<h3><span id="42-搭建zabbix主程序使用一般docke命令创建">4.2 搭建zabbix主程序（使用一般docke命令创建）</span></h3><pre><code class="bash"></code></pre>
+<h3><span id="42-搭建zabbix主程序使用一般docke命令创建">4.2 搭建zabbix主程序（使用一般docke命令创建）</span></h3><pre><code class="bash">#第一步:
+#先安装数据库mysql:
+docker run --name zabbix-mysql-server --hostname zabbix-mysql-server \
+-e MYSQL_ROOT_PASSWORD="123456" \
+-e MYSQL_USER="zabbix" \
+-e MYSQL_PASSWORD="123456" \
+-e MYSQL_DATABASE="zabbix" \
+-p 23306:3306 \
+-d mysql:5.7 \
+--character-set-server=utf8 --collation-server=utf8_bin
+
+# 第二步:
+# 2 创建zabbix-server
+docker run  --name zabbix-server-mysql --hostname zabbix-server-mysql \
+--link zabbix-mysql-server:mysql \
+-e DB_SERVER_HOST="mysql" \
+-e MYSQL_USER="zabbix" \
+-e MYSQL_DATABASE="zabbix" \
+-e MYSQL_PASSWORD="123456" \
+-v /etc/localtime:/etc/localtime:ro \
+-v ~/zabbix/alertscripts:/usr/lib/zabbix/alertscripts \
+-v ~/externalscripts:/usr/lib/zabbix/externalscripts \
+-p 10051:10051 \
+-d \
+--restart=always \
+zabbix/zabbix-server-mysql
+
+# 第三步也是最后一步:
+# 安装web-nginx
+# 最后安装zabbix-web-nginx
+docker run --name zabbix-web-nginx-mysql --hostname zabbix-web-nginx-mysql \
+--link zabbix-mysql-server:mysql \
+--link zabbix-server-mysql:zabbix-server \
+-e DB_SERVER_HOST="mysql" \
+-e MYSQL_USER="zabbix" \
+-e MYSQL_PASSWORD="123456" \
+-e MYSQL_DATABASE="zabbix" \
+-e ZBX_SERVER_HOST="zabbix-server" \
+-e PHP_TZ="Asia/Shanghai" \
+-p 8880:8080 \
+-d \
+--restart=always \
+zabbix/zabbix-web-nginx-mysql
+
+</code></pre>
+<p>这里说明下，mysql没做数据卷的映射，nginx也没做数据卷的映射，在实际生产环境下，最好做数据映射。防止数据丢失。</p>
+<p>4.登录访问测试</p>
+<p>浏览器访问ip:8880查看</p>
+<p>默认登录</p>
+<p>username:Admin</p>
+<p>password:zabbix</p>
+<p>搭建zabbix agent</p>
+<pre><code class="bash">docker run --name zabbix-agent -e ZBX_HOSTNAME="172.16.16.4" -e ZBX_SERVER_HOST="172.16.16.5" -d -p 10050:10050 --restart=always zabbix/zabbix-agent</code></pre>
+<h3><span id="43-配置界面">4.3 配置界面</span></h3>{% asset_img image.png image %}
+
+<p>选择主机模板</p>
+{% asset_img 2.png 2 %}
+
+
+
+
+
+{% asset_img image3.png image3 %}
+
+{% asset_img image4.png image4 %}
+
+
+
+<h3><span id="44-图形显示中文乱码解决办法">4.4 图形显示中文乱码解决办法</span></h3>{% asset_img image5.png image5 %}
+
+
+
+<pre><code class="bash">#1.把docker中的字体文件夹拷贝出来
+
+docker cp zabbix-web-nginx-mysql:/usr/share/zabbix/assets/fonts ./
+
+# 2.把电脑的字体文件songti.ttc拷贝到该目录，并把目录映射到docker中
+
+mv songti.ttc ./fonts/songti.ttc
+
+</code></pre>
+<p>3.再重启起docker</p>
+<pre><code class="bash">docker run --name zabbix-web-nginx-mysql --hostname zabbix-web-nginx-mysql \
+--link zabbix-mysql-server:mysql \
+--link zabbix-server-mysql:zabbix-server \
+-e DB_SERVER_HOST="mysql" \
+-e MYSQL_USER="zabbix" \
+-e MYSQL_PASSWORD="123456" \
+-e MYSQL_DATABASE="zabbix" \
+-e ZBX_SERVER_HOST="zabbix-server" \
+-e PHP_TZ="Asia/Shanghai" \
+-p 8880:8080 \
+-v ~/fonts-zabbix:/usr/share/zabbix/assets/fonts \
+-d \
+--restart=always \
+zabbix/zabbix-web-nginx-mysql</code></pre>
+<p>4.先备份原有字体，再把新字体改成默认字体</p>
+<pre><code class="bash">cp  DejaVuSans.ttf ./DejaVuSans.ttf.back
+
+# 5.把新字体的名字改成DejaVuSans.ttf，并覆盖
+mv DejaVuSans.ttc ./DejaVuSans.ttf</code></pre>
+<img src="/2020/07/26/docker%E5%AE%9E%E6%88%98/image-20200726174418913.png" class title="image-20200726174418913">
+
+
+
+
+
+<p>最终效果</p>
+<img src="/2020/07/26/docker%E5%AE%9E%E6%88%98/image9.png" class title="image9">
+
+
+
+<h3><span id="45-zabbix创建icmp模板">4.5 zabbix创建ICMP模板</span></h3><img src="/2020/07/26/docker%E5%AE%9E%E6%88%98/image10.png" class title="image10">
+
+
+
+<img src="/2020/07/26/docker%E5%AE%9E%E6%88%98/image11.png" class title="image11">
+
+<img src="/2020/07/26/docker%E5%AE%9E%E6%88%98/image12.png" class title="image12">
+
+<img src="/2020/07/26/docker%E5%AE%9E%E6%88%98/image13.png" class title="image13">
+
+<img src="/2020/07/26/docker%E5%AE%9E%E6%88%98/image14.png" class title="image14">
+
+<img src="/2020/07/26/docker%E5%AE%9E%E6%88%98/image15.png" class title="image15">
+
+<p>在主机配置中应用模板</p>
+<img src="/2020/07/26/docker%E5%AE%9E%E6%88%98/image16.png" class title="image16">
+
+
+
+<img src="/2020/07/26/docker%E5%AE%9E%E6%88%98/image17.png" class title="image17">
+
+
+
+<p>微信告警：<a href="https://www.cnblogs.com/yanjieli/p/10840132.html" target="_blank" rel="noopener">https://www.cnblogs.com/yanjieli/p/10840132.html</a></p>
 <h2><span id="docker-第五章-部署rabbitmq">docker 第五章 部署RabbitMq</span></h2><h2><span id="docker-第六章-部署mysql">docker 第六章 部署mysql</span></h2><h2><span id="docker-第七章-部署nginx">docker 第七章 部署nginx</span></h2><h2><span id="docker-第八章-搭建jumpserver">docker  第八章 搭建jumpserver</span></h2><h2><span id="docker-第九章-搭建gitlab">docker 第九章 搭建gitlab</span></h2><h2><span id="docker-第十章-部署-elk">docker 第十章 部署 ELK</span></h2><h2><span id="docker-第十一章-部署jenkins">docker 第十一章 部署jenkins</span></h2><h2><span id="docker-第十二章-compose部署">docker 第十二章 compose部署</span></h2><script>
         document.querySelectorAll('.github-emoji')
           .forEach(el => {
