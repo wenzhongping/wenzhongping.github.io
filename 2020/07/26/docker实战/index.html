@@ -745,7 +745,357 @@ mv DejaVuSans.ttc ./DejaVuSans.ttf</code></pre>
 
 
 <p>微信告警：<a href="https://www.cnblogs.com/yanjieli/p/10840132.html" target="_blank" rel="noopener">https://www.cnblogs.com/yanjieli/p/10840132.html</a></p>
-<h2><span id="docker-第五章-部署rabbitmq">docker 第五章 部署RabbitMq</span></h2><h2><span id="docker-第六章-部署mysql">docker 第六章 部署mysql</span></h2><h2><span id="docker-第七章-部署nginx">docker 第七章 部署nginx</span></h2><h2><span id="docker-第八章-搭建jumpserver">docker  第八章 搭建jumpserver</span></h2><h2><span id="docker-第九章-搭建gitlab">docker 第九章 搭建gitlab</span></h2><h2><span id="docker-第十章-部署-elk">docker 第十章 部署 ELK</span></h2><h2><span id="docker-第十一章-部署jenkins">docker 第十一章 部署jenkins</span></h2><h2><span id="docker-第十二章-compose部署">docker 第十二章 compose部署</span></h2><script>
+<h2><span id="docker-第五章-部署rabbitmq">docker 第五章 部署RabbitMq</span></h2><pre><code class="bash">docker run -d --name rabbitmq -p 56710:5671 -p 56720:5672 -p 43690:4369 -p 25672:25672 -p 15671:15671 -p 15672:15672 -v /root/RabbitMq:/var/lib/rabbitmq  --restart=always rabbitmq:management</code></pre>
+<p>访问<a href="http://ip:15672" target="_blank" rel="noopener">http://ip:15672</a></p>
+<p>默认账号密码：guest/guest</p>
+<h2><span id="docker-第六章-部署mysql">docker 第六章 部署mysql</span></h2><pre><code class="bash">docker run -d --name mysql -p 3307:3306 -v /root/data:/var/lib/mysql  -v /root/mysql:/etc/mysql  --restart=always -e MYSQL_ROOT_PASSWORD=passwd mysql
+
+
+#2 把需要的配置文件拷贝出来/var/lib/mysql  /etc/mysql
+docker cp mysql:/var/lib/mysql /root/data
+docker cp mysql:/etc/mysql /root/mysql
+
+# 3 进入docker的mysql
+docker exec -it mysql /bin/bash
+# 4.给远程用户授权
+grant all on *.* to root@'%' ; 
+flush privileges;
+# 允许远程登录
+#在映射出来的配置文件下找到mysqld配置文件
+#【mysqld】下添加
+bind-address = 0.0.0.0
+
+
+</code></pre>
+<p>使用nginx代理mysql服务</p>
+<pre><code class="bash"># 在stream下添加
+stream {
+#mysql
+
+
+server {
+
+       listen  33060;
+
+
+   proxy_pass mysql;
+
+}
+
+
+
+
+
+#mysql
+upstream mysql {
+                server 127.0.0.1:3306 weight=3 max_fails=3 fail_timeout=30s;
+
+        }
+}</code></pre>
+<h2><span id="docker-第七章-部署nginx">docker 第七章 部署nginx</span></h2><pre><code class="bash"># 1.先拉起一个doceker 为了拿nginx原始配置文件
+docker run --name nginx1 -d nginx
+docker cp nginx1:/etc/nginx  /root
+docker rm -f nginx1
+# 1.正式拉起一个 nginx
+docker run --name nginx-80 -v /root/nginx:/etc/nginx -d  -p  80:80   --restart=always  nginx </code></pre>
+<h2><span id="docker-第八章-搭建jumpserver">docker  第八章 搭建jumpserver</span></h2><h3><span id="81-简介">8.1 简介</span></h3><p>官方文档：<a href="https://docs.jumpserver.org/zh/master/" target="_blank" rel="noopener">https://docs.jumpserver.org/zh/master/</a></p>
+<h4><span id="简介">简介</span></h4><ul>
+<li><p>JumpServer 是全球首款完全开源的堡垒机, 使用 GNU GPL v2.0 开源协议, 是符合 4A 的专业运维审计系统。</p>
+</li>
+<li><p>JumpServer 使用 Python / Django 进行开发, 遵循 Web 2.0 规范, 配备了业界领先的 Web Terminal 解决方案, 交互界面美观、用户体验好。</p>
+</li>
+<li><p>JumpServer 采纳分布式架构, 支持多机房跨区域部署, 中心节点提供 API, 各机房部署登录节点, 可横向扩展、无并发访问限制。</p>
+</li>
+<li><p>JumpServer 现已支持管理 SSH、 Telnet、 RDP、 VNC 协议资产。</p>
+</li>
+</ul>
+<p>改变世界, 从一点点开始。</p>
+<p> 特色优势</p>
+<ul>
+<li>开源: 零门槛，线上快速获取和安装；</li>
+<li>分布式: 轻松支持大规模并发访问；</li>
+<li>无插件: 仅需浏览器，极致的 Web Terminal 使用体验；</li>
+<li>多云支持: 一套系统，同时管理不同云上面的资产； 云端存储: 审计录像云端存储，永不丢失； 多租户: 一套系统，多个子公司和部门同时使用。</li>
+</ul>
+<h3><span id="82-docker-compose部署">8.2 Docker-Compose部署</span></h3><pre><code class="bash"># 若未安装Docker-Compose参考如下代码：
+#1、下载
+sudo curl -L https://get.daocloud.io/docker/compose/releases/download/1.25.1/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+#2、增加权限
+sudo chmod +x /usr/local/bin/docker-compose
+#3.测试安装结果
+docker-compose --version
+
+# 从git下载docker compose并安装
+
+git clone https://github.com/jumpserver/Dockerfile.git
+cd Dockerfile
+cat .env
+docker-compose up -d
+
+
+</code></pre>
+<p>遇到一个问题80端口被占用</p>
+<p>解决办法：</p>
+<pre><code class="bash">vim 3个docker-compose文件，把jms_nginx的80端口改成26680端口</code></pre>
+{% asset_img image-20200727095139162.png image-20200727095139162 %}
+
+
+
+{% asset_img image-20200727095214788.png image-20200727095214788 %}
+
+
+
+<h3><span id="83-关于jumpserver-持久化问题">8.3 关于jumpserver 持久化问题</span></h3>{% asset_img image-20200727095457865.png image-20200727095457865 %}
+
+
+
+<p>删库测试</p>
+<pre><code class="bash">docker rm -f jms_mysql</code></pre>
+<p>打开后马上报错</p>
+<img src="/2020/07/26/docker%E5%AE%9E%E6%88%98/image-20200727095606513.png" class title="image-20200727095606513">
+
+
+
+<pre><code class="bash">#重新运行docker-compose
+# docker-compose命令格式为
+# docker-compose -f XXX.yml up -d
+
+[root@ Dockerfile]docker-compose up -d
+jms_redis is up-to-date
+Creating jms_mysql ... done
+jms_core is up-to-date
+jms_guacamole is up-to-date
+jms_koko is up-to-date
+jms_nginx is up-to-date</code></pre>
+<img src="/2020/07/26/docker%E5%AE%9E%E6%88%98/image-20200727100049117.png" class title="image-20200727100049117">
+
+<p>查看之前修改的密码配置是否还在呢</p>
+<h3><span id="添加用户并配置免密登录">添加用户并配置免密登录</span></h3><pre><code class="bash">#去到需要远程登录的机器生成公钥
+
+ cd .ssh/
+ssh-keygen -f test
+
+cat test
+#复制下密钥创建系统用户用</code></pre>
+<h2><span id="docker-第九章-搭建gitlab">docker 第九章 搭建gitlab</span></h2><h3><span id="91-git常用命令">9.1 git常用命令</span></h3><pre><code class="bash">#  第一次需要初始化文件夹，之后不用
+git init 
+# 关联远程仓库
+git remote add origin https://github.com/webf5/zabbix-agent.gitgit remote add origin https://github.com/webf5/zabbix-agent.git
+# 添加本地文件夹下所有文件
+git add . 
+# 提交时候的标签
+git commit -m "first commit" 
+#提交到主目录
+git push -u origin master
+# 注意按提示绑定邮箱和用户名，两个都需要绑定
+# 下载文件
+git clone https://github.com/webf5/zabbix.git</code></pre>
+<h3><span id="92-安装">9.2 安装</span></h3><pre><code class="bash">docker run --detach --publish 6443:443 --publish 6680:80 --name gitlab --restart unless-stopped -v /root/app/github/gitlab:/etc/gitlab -v /root/app/github/log/gitlab:/var/log/gitlab -v /root/app/github/beginor/gitlab:/var/opt/gitlab beginor/gitlab-ce:11.0.1-ce.0</code></pre>
+<p>装完之后改</p>
+<p>vim /etc/gitlab/gitlab.rb</p>
+{% asset_img image18.png image18 %}
+
+<p>此处填写域名，不需要端口，这里只是克隆显示地址</p>
+<pre><code class="bash"># 重置GitHub
+gitlab-ctl reconfigure
+
+# 重启githbu
+
+gitlab-ctl restart
+
+</code></pre>
+<p>502报错解决</p>
+<img src="/2020/07/26/docker%E5%AE%9E%E6%88%98/image-20200727101316327.png" class title="image-20200727101316327">
+
+<pre><code class="bash">一、异常现象：
+gitlab访问错误Whoops, GitLab is taking too much time to respond
+
+二、问题定位
+问题定位8080端口被占用：
+
+三、解决方案
+解决方案01：
+
+将占用的8080端口的进程杀死
+或者卸载占用8080端口的软件
+修改正在占用8080端口程序的端口运行
+重新启动gitlab
+解决方案02：
+
+将external_url添加一个未被使用的端口
+external_url 'http://192.168.45.146
+
+修改为没有使用的端口即可：
+external_url 'http://192.168.45.146:8899'
+
+将下面这3行打开注释
+默认注释：
+
+unicorn['port'] = 8088
+postgresql['shared_buffers'] = "256MB"
+postgresql['max_connections'] = 200</code></pre>
+<p>gitlab常用命令：</p>
+<pre><code class="bash">#重启配置，并启动gitlab服务    
+sudo gitlab-ctl reconfigure
+#启动所有 gitlab    
+sudo gitlab-ctl start
+#重新启动GitLab    
+sudo gitlab-ctl restart
+#停止所有 gitlab    
+sudo gitlab-ctl stop
+#查看服务状态    
+sudo gitlab-ctl status
+#查看Gitlab日志    
+sudo gitlab-ctl tail
+#修改默认的配置文件    
+sudo vim /etc/gitlab/gitlab.rb
+#检查gitlab    
+gitlab-rake gitlab:check SANITIZE=true --trace</code></pre>
+<h2><span id="docker-第十章-部署-elk">docker 第十章 部署 ELK</span></h2><h3><span id="101-简介">10.1 简介</span></h3><p><strong>Filebeat 日志数据采集，Logstash 过滤，Elasticsearch 存储，Kibana 展示</strong></p>
+<img src="/2020/07/26/docker%E5%AE%9E%E6%88%98/image-20200727102012658.png" class title="image-20200727102012658">
+
+
+
+<img src="/2020/07/26/docker%E5%AE%9E%E6%88%98/image-20200727102034590.png" class title="image-20200727102034590">
+
+
+
+<h3><span id="102-安装elasticsearch">10.2 安装Elasticsearch</span></h3><pre><code class="bash"># 1.先起一个docker拿到配置文件
+[root@ ELK]mkdir 
+
+[root@ ELK] ls
+elasticsearch
+[root@ ELK] docker run -d --name elasticsearch -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" elasticsearch:7.7.0
+
+# 2.复制/usr/share/elasticsearch/config文件
+
+docker cp elasticsearch:/usr/share/elasticsearch/config  /root/app/ELK/elasticsearch/
+
+# 3.正式创建docker(需要传入环境变量限制内存)
+
+docker run -d --name  elasticsearch -p 9300:9300 -p 9200:9200  -e "discovery.type=single-node"  -e ES_JAVA_OPTS="-Xms512m -Xmx512m" -v  /root/app/ELK/elasticsearch/config:/usr/share/elasticsearch/config -v /root/app/ELK/elasticsearch/data:/usr/share/elasticsearch/data --restart=always  elasticsearch:7.7.0
+
+
+# 4.在物理机编辑yml文件/root/app/ELK/elasticsearch/config
+
+cluster.name: "docker-cluster"
+network.host: 0.0.0.0
+http.cors.enabled: true
+http.cors.allow-origin: "*"
+ discovery.zen.minimum_master_nodes: 1
+
+
+
+
+
+</code></pre>
+<h3><span id="103-安装kibana">10.3 安装kibana</span></h3><pre><code class="bash"># 1.先简单运行一个容器，为了拿到配置文件映射回到本机
+docker run -d --name kibana -p 5601:5601 kibana:7.7.0
+
+# 2.进入容器
+ docker exec -it kibana /bin/bash
+  cd /usr/share/kibana/config/
+# 3.把这个配置文件复制出来
+[root@ ELK]# cd kibana/
+[root@ kibana]# ls
+[root@ kibana]# docker cp kibana:/usr/share/kibana/config/kibana.yml ./
+[root@ kibana]# ls
+kibana.yml
+
+#  4用完容器，把容器删除
+docker rm -f kibana 
+
+# 5.修改配置文件
+改成本机的elasticsearch地址
+
+# 6.正式run 容器并建立映射
+
+docker run --name kibana -d --restart=always --log-driver json-file --log-opt max-size=100m --log-opt max-file=2  -p 5601:5601 -v /root/app/ELK/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml -e ES_JAVA_OPTS="-Xms512m -Xmx512m"  kibana:7.7.0
+</code></pre>
+<img src="/2020/07/26/docker%E5%AE%9E%E6%88%98/image-20200727112305059.png" class title="image-20200727112305059">
+
+<p>curl 127.0.0.1:5601 测试</p>
+<h3><span id="104-安装logstash">10.4 安装logstash</span></h3><pre><code class="bash"># 1.简单起一个docker把原始配置文件拷贝出来备用
+docker run -d --name logstash   logstash:7.7.0
+docker cp logstash:/usr/share/logstash/config /root/logstash
+
+docker rm -f logstash 
+
+#  2.修改配置
+修改conf文件
+elasticsearch server为实际elasticsearch ip
+vim  logstash.yml
+
+elasticsearch server为实际elasticsearch ip
+
+# 3.正式run docker
+docker run -d --restart=always --log-driver json-file --log-opt max-size=100m --log-opt max-file=2 -p 15044:5044 --name logstash -v /root/logstash/config:/usr/share/logstash/config  -e ES_JAVA_OPTS="-Xms256m -Xmx256m"   logstash:7.7.0
+
+
+</code></pre>
+<h3><span id="105-安装filebeat">10.5 安装filebeat</span></h3><pre><code class="bash">#1 先简单起一个docker
+docker run --name filebeat-test -d store/elastic/filebeat:7.7.0
+# 2 把这个文件映射出来
+docker cp filebeat-test:/usr/share/filebeat ./
+# 3.修改配置文件
+vim filebeat.yml 
+output.logstash
+host: 改成elasticsearch的 ip
+# 正式启动
+docker run --restart=always --log-driver json-file --log-opt max-size=100m --log-opt max-file=2  --name filebeat --user=root -d   -v /root/filebeat-conf:/usr/share/filebeat  -e ES_JAVA_OPTS="-Xms256m -Xmx256m"   store/elastic/filebeat:7.7.0</code></pre>
+<h3><span id="106-kibana-7-汉化">10.6 kibana 7 汉化</span></h3><p>kibana 7 中官方加入了中文的选项</p>
+<p>中文包在 /usr/share/kibana/node_modules/x-pack/plugins/translations/translations/zh-CN.jso</p>
+<p>只需要在配置文件 kibana.yml 中加入</p>
+<p>i18n.locale: “zh-CN”</p>
+<h2><span id="docker-第十一章-部署jenkins">docker 第十一章 部署jenkins</span></h2><h3><span id="111-简介">11.1 简介</span></h3><p>  一般情况下，将一个项目部署到生产环境的流程如下：</p>
+<p>  需求分析—原型设计—开发代码—内网部署-提交测试—确认上线—备份数据—外网更新-最终测试，如果发现外网部署的代码有异常，需要及时回滚。</p>
+<p>   整个过程相当复杂而漫长，其中还需要输入不少的命令，比如上传代码，git的拉取或者合并分支等等。   Jenkins是目前非常流行的一款持续集成工具，可以帮助大家把更新后的代码自动部署到服务器上运行，整个流程非常自动化，你可以理解为部署命令操作的可视化界面。</p>
+<p>​    Jenkins主要有三种安装方式</p>
+<p>  下载官方war包，放到tomcat中直接运行。</p>
+<p>  yum安装。 使用官方docker镜像。</p>
+<p>  毫无疑问，既然有docker这么简单方便的工具，就没必要选择前两种复杂的安装方式了。</p>
+<p>  首先安装docker</p>
+<pre><code class="bash"># 1在主机上创建目录，并添加读写权限以便jenkins应用运行时读写文件
+mkdir /root/j_node
+chmod 777 /root/j_node
+# 2.docker启动jenkins
+docker run -d --name jenkins -p 8081:8080 -p 50000:50000 -v /root/j_node:/var/jenkins_home jenkins/jenkins</code></pre>
+<p>这里注意，如果是阿里云的话，安全策略需要暴露8081端口</p>
+<p>通过网址访问 http://你的ip:8081</p>
+<p>然后通过命令获取安装秘钥</p>
+<p>docker logs jenkins</p>
+<p>有了密码，输入后安装建议的插件，推荐的插件里就包含版本控制软件git。</p>
+<img src="/2020/07/26/docker%E5%AE%9E%E6%88%98/image19.png" class title="image19">
+
+<img src="/2020/07/26/docker%E5%AE%9E%E6%88%98/image20.png" class title="image20">
+
+
+
+<h2><span id="docker-第十二章-compose部署">docker 第十二章 compose部署</span></h2><h3><span id="121-docker-commpose安装">12.1 docker commpose安装</span></h3><pre><code class="bash">1、下载
+sudo curl -L https://get.daocloud.io/docker/compose/releases/download/1.25.1/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+2、增加权限
+sudo chmod +x /usr/local/bin/docker-compose
+3.测试安装结果
+docker-compose --version
+</code></pre>
+<h3><span id="122-dcoker-compose模板">12.2 dcoker-compose模板</span></h3><pre><code class="bash"># 1、编辑yml文件
+version: "3"
+services:
+
+  zabbix-agent:
+    image: docker.io/zabbix/zabbix-agent
+    container_name: zabbix-agent
+    ports:
+      - 10050:10050
+    restart: always
+    environment:
+      -  ZBX_SERVER_HOST=172.16.16.5
+
+
+# 2.启动
+docker-compose -f zabbix-agent.yml up -d
+</code></pre>
+<script>
         document.querySelectorAll('.github-emoji')
           .forEach(el => {
             if (!el.dataset.src) { return; }
