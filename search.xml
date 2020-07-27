@@ -4,6 +4,25 @@
   
     
     <entry>
+      <title>集群-负载均衡</title>
+      <link href="/2020/07/28/%E9%9B%86%E7%BE%A4-%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/"/>
+      <url>/2020/07/28/%E9%9B%86%E7%BE%A4-%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/</url>
+      
+        <content type="html"><![CDATA[<h1><span id="f5-负载均衡">F5 负载均衡</span></h1><h2><span id="常用配置">常用配置</span></h2><p>已经将文档放至石墨文档：</p><p><a href="https://shimo.im/docs/d849dbf841e548f6/" target="_blank" rel="noopener">https://shimo.im/docs/d849dbf841e548f6/</a> </p><p>各位前辈请多多指正</p><h2><span id="irule常用配置">irule常用配置</span></h2><p><a href="https://shimo.im/docs/b59cf49421974c21/" target="_blank" rel="noopener">https://shimo.im/docs/b59cf49421974c21/</a> 《Irule 常用模版-wenzhongping》，可复制链接后用石墨文档 App 或小程序打开</p><script>        document.querySelectorAll('.github-emoji')          .forEach(el => {            if (!el.dataset.src) { return; }            const img = document.createElement('img');            img.style = 'display:none !important;';            img.src = el.dataset.src;            img.addEventListener('error', () => {              img.remove();              el.style.color = 'inherit';              el.style.backgroundImage = 'none';              el.style.background = 'none';            });            img.addEventListener('load', () => {              img.remove();            });            document.body.appendChild(img);          });      </script>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> 集群 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>k8s实战</title>
       <link href="/2020/07/28/k8s%E5%AE%9E%E6%88%98/"/>
       <url>/2020/07/28/k8s%E5%AE%9E%E6%88%98/</url>
@@ -72,25 +91,6 @@
         <tags>
             
             <tag> Nginx </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    
-    
-    <entry>
-      <title>集群-负载均衡</title>
-      <link href="/2020/06/20/%E9%9B%86%E7%BE%A4-%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/"/>
-      <url>/2020/06/20/%E9%9B%86%E7%BE%A4-%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/</url>
-      
-        <content type="html"><![CDATA[<script>        document.querySelectorAll('.github-emoji')          .forEach(el => {            if (!el.dataset.src) { return; }            const img = document.createElement('img');            img.style = 'display:none !important;';            img.src = el.dataset.src;            img.addEventListener('error', () => {              img.remove();              el.style.color = 'inherit';              el.style.backgroundImage = 'none';              el.style.background = 'none';            });            img.addEventListener('load', () => {              img.remove();            });            document.body.appendChild(img);          });      </script>]]></content>
-      
-      
-      
-        <tags>
-            
-            <tag> 集群 </tag>
             
         </tags>
       
